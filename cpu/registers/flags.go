@@ -1,5 +1,23 @@
 package registers
 
+import (
+	"errors"
+
+	"github.com/loizoskounios/game-boy-emulator/byteops"
+)
+
+var errUnknownFlag = errors.New("unknown flag")
+
+type flag uint8
+
+// Enumerates individual flags in the flags register.
+const (
+	CY flag = iota
+	H
+	N
+	ZF
+)
+
 type flags struct {
 	val byte
 }
@@ -9,29 +27,22 @@ func NewFlags() *flags {
 	return &flags{}
 }
 
-// Value returns a copy of the value of the 8-bit flags register.
-func (f *flags) Flags() byte {
-	return f.val
+// Flags returns a copy of the value of the 8-bit flags register.
+func (flags *flags) Flags() byte {
+	return flags.val
 }
 
-// How many bits the bitmask must be shifted by to mask the bit corresponding
-// to the flag.
-var flagShift = map[string]uint{
-	"cy": 4,
-	"h":  5,
-	"n":  6,
-	"zf": 7,
-}
-
-// UpdateFlag sets the value of a flag to the given value.
-//
-// Accepted values for flag are "cy", "h", "n", "zf".
-// Accepted values for val are 0 or 1.
-func (f *flags) UpdateFlag(flag string, val byte) {
-	f.updateBit(flagShift[flag], val)
-}
-
-func (f *flags) updateBit(pos uint, val byte) {
-	bitmask := byte(1) << pos
-	f.val = f.val&^bitmask | (val << pos)
+func (flags *flags) UpdateFlag(flag flag, mutator byteops.Mutator) error {
+	switch flag {
+	case CY:
+		return mutator(&(flags.val), 4)
+	case H:
+		return mutator(&(flags.val), 5)
+	case N:
+		return mutator(&(flags.val), 6)
+	case ZF:
+		return mutator(&(flags.val), 7)
+	default:
+		return errUnknownFlag
+	}
 }
