@@ -6,7 +6,7 @@ var errOutOfBounds = errors.New("requested bit is out of bounds")
 
 // Mutator is the function prototype for the operators that modify the provided
 // byte.
-type Mutator func(*byte, uint8)
+type Mutator func(*byte, uint8) error
 
 // Clear modifies b in place by setting the value of the nth bit to 0.
 func Clear(b *byte, n uint8) error {
