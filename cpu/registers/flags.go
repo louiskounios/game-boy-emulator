@@ -11,8 +11,12 @@ var errUnknownFlag = errors.New("unknown flag")
 type flag uint8
 
 // Enumerates individual flags in the flags register.
+//
+// Bits 0-3 are unused. Starting the enumeration of the used flags from 4
+// makes it easy to pass this same enum as an argument to the bitshift
+// operators.
 const (
-	CY flag = iota
+	CY flag = iota + 4
 	H
 	N
 	ZF
@@ -34,14 +38,8 @@ func (flags *flags) Flags() byte {
 
 func (flags *flags) UpdateFlag(flag flag, mutator byteops.Mutator) error {
 	switch flag {
-	case CY:
-		return mutator(&(flags.val), 4)
-	case H:
-		return mutator(&(flags.val), 5)
-	case N:
-		return mutator(&(flags.val), 6)
-	case ZF:
-		return mutator(&(flags.val), 7)
+	case CY, H, N, ZF:
+		return mutator(&(flags.val), uint8(flag))
 	default:
 		return errUnknownFlag
 	}
