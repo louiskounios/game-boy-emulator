@@ -1,9 +1,14 @@
 package cpu
 
-func setBit(b *byte, pos uint) {
-	*b |= (byte(1) << pos)
+import "github.com/loizoskounios/game-boy-emulator/cpu/registers"
+
+// CPU is the CPU.
+type CPU struct {
+	clock     clock
+	registers registers.Registers
 }
 
-func clearBit(b *byte, pos uint) {
-	*b &^= (byte(1) << pos)
+// NewCPU returns a new CPU struct.
+func NewCPU() *CPU {
+	return &CPU{}
 }

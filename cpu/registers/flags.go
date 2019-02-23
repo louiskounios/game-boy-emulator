@@ -8,38 +8,31 @@ import (
 
 var errUnknownFlag = errors.New("unknown flag")
 
-type flag uint8
-
 // Enumerates individual flags in the flags register.
 //
 // Bits 0-3 are unused. Starting the enumeration of the used flags from 4
 // makes it easy to pass this same enum as an argument to the bitshift
 // operators.
 const (
-	CY flag = iota + 4
+	CY uint8 = iota + 4
 	H
 	N
 	ZF
 )
 
-type flags struct {
-	val byte
-}
+// Flags is an 8-bit register.
+type Flags uint8
 
 // NewFlags returns a new 8-bit flags register.
-func NewFlags() *flags {
-	return &flags{}
+func NewFlags() *Flags {
+	return new(Flags)
 }
 
-// Flags returns a copy of the value of the 8-bit flags register.
-func (flags *flags) Flags() byte {
-	return flags.val
-}
-
-func (flags *flags) UpdateFlag(flag flag, mutator byteops.Mutator) error {
-	switch flag {
+// UpdateFlag updates the nth flag of flags using the mutator function provided.
+func (flags *Flags) UpdateFlag(n uint8, mutator byteops.Mutator) error {
+	switch n {
 	case CY, H, N, ZF:
-		return mutator(&(flags.val), uint8(flag))
+		return nil
 	default:
 		return errUnknownFlag
 	}

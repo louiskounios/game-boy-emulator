@@ -15,17 +15,6 @@ func TestNewFlags(t *testing.T) {
 	}
 }
 
-func TestNewFlagsVal(t *testing.T) {
-	f := NewFlags()
-
-	expected := byte(0)
-	actual := f.Flags()
-
-	if actual != expected {
-		t.Errorf("got %d, expected %d", expected, actual)
-	}
-}
-
 var updateFlagTests = []struct {
 	f   flag
 	m   byteops.Mutator
