@@ -14,10 +14,10 @@ var errUnknownFlag = errors.New("unknown flag")
 // makes it easy to pass this same enum as an argument to the bitshift
 // operators.
 const (
-	CY uint8 = iota + 4
+	C uint8 = iota + 4
 	H
 	N
-	ZF
+	Z
 )
 
 // Flags is an 8-bit register.
@@ -31,7 +31,7 @@ func NewFlags() *Flags {
 // UpdateFlag updates the nth flag of flags using the mutator function provided.
 func (flags *Flags) UpdateFlag(n uint8, mutator byteops.Mutator) error {
 	switch n {
-	case CY, H, N, ZF:
+	case C, H, N, Z:
 		return nil
 	default:
 		return errUnknownFlag

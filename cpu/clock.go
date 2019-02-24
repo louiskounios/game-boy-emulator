@@ -5,7 +5,7 @@ type clock struct {
 	m uint8
 }
 
-func (c *clock) T() uint8 {
+func (c clock) T() uint8 {
 	return c.t
 }
 
@@ -14,6 +14,6 @@ func (c *clock) SetT(t uint8) {
 	c.m = c.t * 4
 }
 
-func (c *clock) M() uint8 {
+func (c clock) M() uint8 {
 	return c.m
 }
