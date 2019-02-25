@@ -20,18 +20,18 @@ func (r Register16C) Equals(rr *Register16C) bool {
 	return (r.R1 == rr.R1) && (r.R2 == rr.R2)
 }
 
-// Word returns a 16-bit register that is the result of combining the two 8-bit
-// registers that exist in a 16-bit compound register.
+// Word combines the two 8-bit registers that exist in a 16-bit compound
+// register and returns a 16-bit register.
 //
-// The 8 bits from r.R1 and r.R2 become the most and least significant bits of
-// the resulting 16-bit register.
+// The 8 bits from r.R1 and r.R2 become the most and least significant bits
+// respectively.
 func (r Register16C) Word() Register16 {
 	return Register16(r.R1)<<8 ^ Register16(r.R2)
 }
 
-// SetWord takes a 16-bit register rr and performs the necessary bit
-// manipulations and modifies r in place to generate the equivalent
-// 16-bit compound register.
+// SetWord updates the two 8-bit registers in r so that the 16-bit register
+// that is the result of combining them is equal to the received 16-bit
+// register rr.
 //
 // The first 8-bit register in r gets the 8 most significant bits of rr.
 // The second 8-bit register in r gets the 8 least significant bits of rr.
