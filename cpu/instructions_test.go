@@ -14,11 +14,11 @@ var instructionTests = []struct {
 }
 
 func TestInstructions(t *testing.T) {
+	cpu := NewCPU()
+
 	for _, tt := range instructionTests {
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
-			if out := instructions[tt.in].execute(); out != tt.out {
-				t.Errorf("got %t, expected %t", out, tt.out)
-			}
+			instructions[tt.in].execute(cpu)
 		})
 	}
 }

@@ -26,7 +26,7 @@ func (r Register16C) Equals(rr *Register16C) bool {
 // The 8 bits from r.R1 and r.R2 become the most and least significant bits
 // respectively.
 func (r Register16C) Word() Register16 {
-	return Register16(r.R1)<<8 ^ Register16(r.R2)
+	return Register16(r.R1)<<8 | Register16(r.R2)
 }
 
 // SetWord updates the two 8-bit registers in r so that the 16-bit register

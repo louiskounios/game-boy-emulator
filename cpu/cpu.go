@@ -4,11 +4,20 @@ import "github.com/loizoskounios/game-boy-emulator/cpu/registers"
 
 // CPU is the CPU.
 type CPU struct {
-	clock     clock
-	registers registers.Registers
+	clock       *clock
+	instruction *instruction
+	registers   *registers.Registers
 }
 
 // NewCPU returns a new CPU struct.
 func NewCPU() *CPU {
 	return &CPU{}
+}
+
+func (cpu *CPU) nop() {
+
+}
+
+func (cpu *CPU) ldbcd16() {
+
 }

@@ -18,7 +18,7 @@ func (m Memory) Byte(a uint16) uint8 {
 // resulting word. The memory contents at a+1 become the 8 least significant
 // bits.
 func (m Memory) Word(a uint16) uint16 {
-	return uint16(m[a])<<8 ^ uint16(m[a+1])
+	return uint16(m[a])<<8 | uint16(m[a+1])
 }
 
 // SetByte writes b to memory address a.
