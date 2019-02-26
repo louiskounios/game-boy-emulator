@@ -1,23 +1,41 @@
 package cpu
 
-import "github.com/loizoskounios/game-boy-emulator/cpu/registers"
+import (
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers"
+	"github.com/loizoskounios/game-boy-emulator/mmu"
+)
 
 // CPU is the CPU.
 type CPU struct {
-	clock       *clock
-	instruction *instruction
-	registers   *registers.Registers
+	c *clock
+	i *instruction
+	r *registers.Registers
+	m *mmu.Memory
 }
 
 // NewCPU returns a new CPU struct.
 func NewCPU() *CPU {
-	return &CPU{}
+	c := &clock{}
+	i := &instruction{}
+	r := registers.NewRegisters()
+	m := &mmu.Memory{}
+
+	return &CPU{
+		c: c,
+		i: i,
+		r: r,
+		m: m,
+	}
 }
 
 func (cpu *CPU) nop() {
 
 }
 
-func (cpu *CPU) ldbcd16() {
+/*
+8-bit loads
+*/
 
+func putNIntoR(n uint8, r *uint8) {
+	*r = n
 }

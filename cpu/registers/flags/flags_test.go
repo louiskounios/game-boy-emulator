@@ -1,4 +1,4 @@
-package registers
+package flags
 
 // import (
 // 	"fmt"

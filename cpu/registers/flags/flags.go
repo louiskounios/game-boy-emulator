@@ -1,4 +1,4 @@
-package registers
+package flags
 
 import (
 	"errors"
@@ -8,13 +8,16 @@ import (
 
 var errUnknownFlag = errors.New("unknown flag")
 
+// Flag is the type for our individual flags enumeration.
+type Flag uint8
+
 // Enumerates individual flags in the flags register.
 //
 // Bits 0-3 are unused. Starting the enumeration of the used flags from 4
 // makes it easy to pass this same enum as an argument to the bitshift
 // operators.
 const (
-	C uint8 = iota + 4
+	C Flag = iota + 4
 	H
 	N
 	Z
@@ -30,7 +33,7 @@ func NewFlags() *Flags {
 
 // UpdateFlag updates the nth flag of flags using the mutator function provided.
 func (flags *Flags) UpdateFlag(n uint8, mutator byteops.Mutator) error {
-	switch n {
+	switch Flag(n) {
 	case C, H, N, Z:
 		return nil
 	default:
