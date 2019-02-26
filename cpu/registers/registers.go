@@ -49,7 +49,8 @@ func NewRegisters() *Registers {
 	return &Registers{AF: af}
 }
 
-// Register returns a copy of register rr.
+// Register returns a copy of register rr, and an errUnknownRegister error,
+// if encountered.
 func (r *Registers) Register(rr Register) (ret uint16, err error) {
 	switch rr {
 	case A:

@@ -13,7 +13,7 @@ var instructionTests = []struct {
 	val      uint8
 	register registers.Register
 }{
-	{0x06, 0x01FE, 30, registers.C},
+	{0x06, 0x01FE, 30, registers.B},
 	{0x0E, 0xFE91, 239, registers.C},
 	{0x16, 0x2939, 102, registers.D},
 	{0x1E, 0x895A, 93, registers.E},

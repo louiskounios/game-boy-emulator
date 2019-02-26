@@ -1,8 +1,6 @@
 package registers
 
 import (
-	"fmt"
-
 	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
@@ -34,12 +32,12 @@ func (r *Register16) Equals(i interface{}) bool {
 	case *Register16:
 		return (r.hi == t.hi) && (r.lo == t.lo)
 	default:
-		fmt.Printf("%s\n", t)
 		return false
 	}
 }
 
-// Hi returns a copy of the 8 most significant in the 16-bit compound register.
+// Hi returns a copy of the 8 most significant bits in the 16-bit compound
+// register.
 func (r *Register16) Hi() uint8 {
 	return r.hi
 }
@@ -49,7 +47,8 @@ func (r *Register16) SetHi(val uint8) {
 	r.hi = val
 }
 
-// Lo returns a copy of the 8 least significant in the 16-bit compound register.
+// Lo returns a copy of the 8 least significant bits in the 16-bit compound
+// register.
 func (r *Register16) Lo() uint8 {
 	return r.lo
 }
@@ -99,7 +98,8 @@ func (r RegisterAF) Equals(i interface{}) bool {
 	}
 }
 
-// Hi returns a copy of the 8 most significant in the 16-bit compound register.
+// Hi returns a copy of the 8 most significant bits in the 16-bit compound
+// register.
 func (r *RegisterAF) Hi() uint8 {
 	return r.a
 }
@@ -109,7 +109,8 @@ func (r *RegisterAF) SetHi(val uint8) {
 	r.a = val
 }
 
-// Lo returns a copy of the 8 least significant in the 16-bit compound register.
+// Lo returns a copy of the 8 least significant bits in the 16-bit compound
+// register.
 func (r *RegisterAF) Lo() uint8 {
 	return uint8(r.f)
 }
