@@ -89,6 +89,15 @@ var instructions = instructionSet{
 	0x7D: &instruction{0x7D, 1, "LD A,L", func(cpu *CPU) { cpu.PutRIntoR(registers.L, registers.A) }},
 	0x7F: &instruction{0x7F, 1, "LD A,A", func(cpu *CPU) { cpu.PutRIntoR(registers.A, registers.A) }},
 
+	// Register (A) -> Memory (address=PC and PC+1)
+	0xEA: &instruction{0xEA, 4, "LD (a16),A", func(cpu *CPU) { cpu.PutAIntoNNAddress() }},
+
+	// Register (A) -> Memory (address=Register BC)
+	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
+
+	// Register (A) -> Memory (address=Register DE)
+	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
+
 	// Register (A, B, C, D, E, H, L) -> Memory (address=Register HL)
 	0x70: &instruction{0x70, 2, "LD (HL),B", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.B) }},
 	0x71: &instruction{0x71, 2, "LD (HL),C", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.C) }},
@@ -98,11 +107,17 @@ var instructions = instructionSet{
 	0x75: &instruction{0x75, 2, "LD (HL),L", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.L) }},
 	0x77: &instruction{0x77, 2, "LD (HL),A", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.A) }},
 
-	// Register (A) -> Memory (address=Register BC)
-	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
+	// Register (A) -> Memory (address=Register HL) => Increment Register (HL)
+	0x22: &instruction{0x22, 2, "LD (HL+),A", func(cpu *CPU) { cpu.PutAIntoHLAddressThenIncrementHL() }},
 
-	// Register (A) -> Memory (address=Register DE)
-	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
+	// Register (A) -> Memory (address=Register HL) => Decrement Register (HL)
+	0x32: &instruction{0x32, 2, "LD (HL-),A", func(cpu *CPU) { cpu.PutAIntoHLAddressThenDecrementHL() }},
+
+	// Register (A) -> Memory (address=[Register C+0xFF00])
+	0xE2: &instruction{0xE2, 2, "LD (C),A", func(cpu *CPU) { cpu.PutAIntoCPlusFF00Address() }},
+
+	// Register (A) -> Memory (address=[PC+0xFF00])
+	0xE0: &instruction{0xE0, 3, "LD (a8),A", func(cpu *CPU) { cpu.PutAIntoNPlusFF00Address() }},
 
 	// Memory (address=PC) -> Register (B, C, D, E, H, L, A)
 	0x06: &instruction{0x06, 2, "LD B,d8", func(cpu *CPU) { cpu.PutNIntoR(registers.B) }},
@@ -113,8 +128,14 @@ var instructions = instructionSet{
 	0x2E: &instruction{0x2E, 2, "LD L,d8", func(cpu *CPU) { cpu.PutNIntoR(registers.L) }},
 	0x3E: &instruction{0x3E, 2, "LD A,d8", func(cpu *CPU) { cpu.PutNIntoR(registers.A) }},
 
-	// Memory (address=PC) -> Memory (address=Register HL)
-	0x36: &instruction{0x36, 3, "LD (HL),d8", func(cpu *CPU) { cpu.PutNIntoHLAddress() }},
+	// Memory (address=PC and PC+1) -> Register (A)
+	0xFA: &instruction{0xFA, 4, "LD A,(a16)", func(cpu *CPU) { cpu.PutNNIntoA() }},
+
+	// Memory (address=[Register C+0xFF00]) -> Register A
+	0xF2: &instruction{0xF2, 2, "LD A,(C)", func(cpu *CPU) { cpu.PutCPlusFF00IntoA() }},
+
+	// Memory (address=[PC+0xFF00]) -> Register (A)
+	0xF0: &instruction{0xF0, 3, "LDH A,(a8)", func(cpu *CPU) { cpu.PutNPlusFF00IntoA() }},
 
 	// Memory (address=Register BC) -> Register (A)
 	0x0A: &instruction{0x0A, 2, "LD A,(BC)", func(cpu *CPU) { cpu.PutBCDereferenceIntoA() }},
@@ -130,4 +151,13 @@ var instructions = instructionSet{
 	0x66: &instruction{0x66, 2, "LD H,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(registers.H) }},
 	0x6E: &instruction{0x6E, 2, "LD L,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(registers.L) }},
 	0x7E: &instruction{0x7E, 2, "LD A,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(registers.A) }},
+
+	// Memory (address=Register HL) -> Register (A) => Increment Register (HL)
+	0x2A: &instruction{0x2A, 2, "LD A,(HL+)", func(cpu *CPU) { cpu.PutHLDereferenceIntoAThenIncrementHL() }},
+
+	// Memory (address=Register HL) -> Register (A) => Decrement Register (HL)
+	0x3A: &instruction{0x3A, 2, "LD A,(HL-)", func(cpu *CPU) { cpu.PutHLDereferenceIntoAThenDecrementHL() }},
+
+	// Memory (address=PC) -> Memory (address=Register HL)
+	0x36: &instruction{0x36, 3, "LD (HL),d8", func(cpu *CPU) { cpu.PutNIntoHLAddress() }},
 }
