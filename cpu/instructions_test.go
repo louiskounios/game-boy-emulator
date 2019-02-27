@@ -13,12 +13,13 @@ var instructionTests = []struct {
 	val      uint8
 	register registers.Register
 }{
-	{0x06, 0x01FE, 30, registers.B},
-	{0x0E, 0xFE91, 239, registers.C},
-	{0x16, 0x2939, 102, registers.D},
-	{0x1E, 0x895A, 93, registers.E},
-	{0x26, 0x0000, 255, registers.H},
-	{0x2E, 0xFFFF, 0, registers.L},
+	{0x06, 0xF0F0, 200, registers.B},
+	{0x0E, 0xF0F0, 200, registers.C},
+	{0x16, 0xF0F0, 200, registers.D},
+	{0x1E, 0xF0F0, 200, registers.E},
+	{0x26, 0xF0F0, 200, registers.H},
+	{0x2E, 0xF0F0, 200, registers.L},
+	{0x3E, 0xF0F0, 200, registers.A},
 }
 
 func TestInstructions(t *testing.T) {
