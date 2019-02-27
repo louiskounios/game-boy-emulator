@@ -36,6 +36,7 @@ func (cpu *CPU) nop() {
 8-bit loads
 */
 
-func putNIntoR(n uint8, r *uint8) {
-	*r = n
+func (cpu *CPU) PutNIntoR(r registers.Register) {
+	n := uint16(cpu.m.Byte(cpu.r.PC))
+	cpu.r.SetRegister(r, n)
 }

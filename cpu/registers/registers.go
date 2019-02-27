@@ -87,3 +87,42 @@ func (r *Registers) Register(rr Register) (ret uint16, err error) {
 
 	return ret, err
 }
+
+// SetRegister sets register rr to value val by modifying r in place.
+// It returns an errUnknownRegister error, if encountered.
+func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
+	switch rr {
+	case A:
+		r.AF.a = uint8(val)
+	case F:
+		r.AF.f = flags.Flags(val)
+	case B:
+		r.BC.hi = uint8(val)
+	case C:
+		r.BC.lo = uint8(val)
+	case D:
+		r.DE.hi = uint8(val)
+	case E:
+		r.DE.lo = uint8(val)
+	case H:
+		r.HL.hi = uint8(val)
+	case L:
+		r.HL.lo = uint8(val)
+	case AF:
+		r.AF.SetWord(val)
+	case BC:
+		r.BC.SetWord(val)
+	case DE:
+		r.DE.SetWord(val)
+	case HL:
+		r.HL.SetWord(val)
+	case SP:
+		r.SP = val
+	case PC:
+		r.PC = val
+	default:
+		err = errUnknownRegister
+	}
+
+	return err
+}
