@@ -108,3 +108,11 @@ func (cpu *CPU) putRegisterDereferenceIntoRegister(fr, tr registers.Register) {
 	val := uint16(cpu.m.Byte(address))
 	cpu.r.SetRegister(tr, val)
 }
+
+func (cpu *CPU) incrementRegister(r registers.Register) {
+	cpu.r.Increment(r)
+}
+
+func (cpu *CPU) decrementRegister(r registers.Register) {
+	cpu.r.Decrement(r)
+}
