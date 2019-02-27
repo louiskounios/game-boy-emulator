@@ -2,11 +2,16 @@ package registers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
-var errUnknownRegister = errors.New("unknown register")
+var (
+	errUnknownRegister = errors.New("unknown register")
+	errFlagsIncrement  = errors.New("flags register cannot be incremented")
+	errFlagsDecrement  = errors.New("flags register cannot be decremented")
+)
 
 // Register is the type for our individual registers enumeration.
 type Register uint8
@@ -125,4 +130,83 @@ func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
 	}
 
 	return err
+}
+
+// Increment increments register rr by 1. r is modified in place.
+// It returns an error, if encountered.
+func (r *Registers) Increment(rr Register) (err error) {
+	switch rr {
+	case A:
+		r.AF.Increment()
+	case B:
+		r.BC.hi++
+	case C:
+		r.BC.lo++
+	case D:
+		r.DE.hi++
+	case E:
+		r.DE.lo++
+	case H:
+		r.HL.hi++
+	case L:
+		r.HL.lo++
+	case BC:
+		r.BC.Increment()
+	case DE:
+		r.DE.Increment()
+	case HL:
+		r.HL.Increment()
+	case SP:
+		r.SP++
+	case PC:
+		r.PC++
+	case F, AF:
+		err = errFlagsIncrement
+	default:
+		err = errUnknownRegister
+	}
+
+	return err
+}
+
+// Decrement decrements register rr by by 1. r is modified in place.
+// It returns an error, if encountered.
+func (r *Registers) Decrement(rr Register) (err error) {
+	switch rr {
+	case A:
+		r.AF.Decrement()
+	case B:
+		r.BC.hi--
+	case C:
+		r.BC.lo--
+	case D:
+		r.DE.hi--
+	case E:
+		r.DE.lo--
+	case H:
+		r.HL.hi--
+	case L:
+		r.HL.lo--
+	case BC:
+		r.BC.Decrement()
+	case DE:
+		r.DE.Decrement()
+	case HL:
+		r.HL.Decrement()
+	case SP:
+		r.SP--
+	case PC:
+		r.PC--
+	case F, AF:
+		err = errFlagsDecrement
+	default:
+		err = errUnknownRegister
+	}
+
+	return err
+}
+
+func (r Registers) String() string {
+	s := "[AF=%s | BC=%s | DE=%s | HL=%s | SP=0x%04X | PC=0x%04X]"
+	return fmt.Sprintf(s, r.AF, r.BC, r.DE, r.HL, r.SP, r.PC)
 }

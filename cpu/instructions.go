@@ -22,7 +22,7 @@ func (i instruction) String() string {
 }
 
 var instructions = instructionSet{
-	/*
+	/**
 	 * 8-bit Operations
 	 */
 
@@ -98,6 +98,12 @@ var instructions = instructionSet{
 	0x75: &instruction{0x75, 2, "LD (HL),L", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.L) }},
 	0x77: &instruction{0x77, 2, "LD (HL),A", func(cpu *CPU) { cpu.PutRIntoHLAddress(registers.A) }},
 
+	// Register (A) -> Memory (address=Register BC)
+	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
+
+	// Register (A) -> Memory (address=Register DE)
+	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
+
 	// Memory (address=PC) -> Register (B, C, D, E, H, L, A)
 	0x06: &instruction{0x06, 2, "LD B,d8", func(cpu *CPU) { cpu.PutNIntoR(registers.B) }},
 	0x0E: &instruction{0x0E, 2, "LD C,d8", func(cpu *CPU) { cpu.PutNIntoR(registers.C) }},
@@ -109,6 +115,12 @@ var instructions = instructionSet{
 
 	// Memory (address=PC) -> Memory (address=Register HL)
 	0x36: &instruction{0x36, 3, "LD (HL),d8", func(cpu *CPU) { cpu.PutNIntoHLAddress() }},
+
+	// Memory (address=Register BC) -> Register (A)
+	0x0A: &instruction{0x0A, 2, "LD A,(BC)", func(cpu *CPU) { cpu.PutBCDereferenceIntoA() }},
+
+	// Memory (address=Register DE) -> Register (A)
+	0x1A: &instruction{0x1A, 2, "LD A,(DE)", func(cpu *CPU) { cpu.PutDEDereferenceIntoA() }},
 
 	// Memory (address=Register HL) -> Register (B, C, D, E, H, L, A)
 	0x46: &instruction{0x46, 2, "LD B,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(registers.B) }},

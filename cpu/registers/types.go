@@ -1,6 +1,8 @@
 package registers
 
 import (
+	"fmt"
+
 	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
@@ -78,6 +80,24 @@ func (r *Register16) SetWord(val uint16) {
 	r.lo = uint8(val)
 }
 
+// Increment increments the 16-bit combined version of the register by 1.
+func (r *Register16) Increment() {
+	w := r.Word()
+	w++
+	r.SetWord(w)
+}
+
+// Decrement decrements the 16-bit combined version of the register by 1.
+func (r *Register16) Decrement() {
+	w := r.Word()
+	w--
+	r.SetWord(w)
+}
+
+func (r Register16) String() string {
+	return fmt.Sprintf("0x%04X", r.Word())
+}
+
 // RegisterAF is a type representing the AF compound register which is made up
 // of a uint8 variable and an 8-bit flags register.
 type RegisterAF struct {
@@ -138,4 +158,18 @@ func (r *RegisterAF) SetWord(val uint16) {
 	r.a = uint8(val >> 8)
 	// Cast to flags.Flags. The 8 most significant bits will be truncated.
 	r.f = flags.Flags(val)
+}
+
+// Increment increments the 8-bit register A by 1.
+func (r *RegisterAF) Increment() {
+	r.a++
+}
+
+// Decrement decrements the 8-bit register A by 1.
+func (r *RegisterAF) Decrement() {
+	r.a--
+}
+
+func (r RegisterAF) String() string {
+	return fmt.Sprintf("0x%04X", r.Word())
 }

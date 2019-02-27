@@ -156,6 +156,52 @@ func TestRegister16SetWord(t *testing.T) {
 	}
 }
 
+var register16IncrementTests = []struct {
+	in  uint16
+	out uint16
+}{
+	{0, 1},
+	{255, 256},
+	{65535, 0},
+}
+
+func TestRegister16Increment(t *testing.T) {
+	for _, tt := range register16IncrementTests {
+		r := Register16{}
+
+		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
+			r.SetWord(tt.in)
+			r.Increment()
+			if out := r.Word(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
+var register16DecrementTests = []struct {
+	in  uint16
+	out uint16
+}{
+	{0, 65535},
+	{256, 255},
+	{1, 0},
+}
+
+func TestRegister16Decrement(t *testing.T) {
+	for _, tt := range register16DecrementTests {
+		r := Register16{}
+
+		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
+			r.SetWord(tt.in)
+			r.Decrement()
+			if out := r.Word(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
 var registerAFEqualsTests = []struct {
 	r1  CompoundRegisterHandler
 	r2  CompoundRegisterHandler
@@ -302,6 +348,52 @@ func TestRegisterAFSetWord(t *testing.T) {
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			if r.SetWord(tt.in); !r.Equals(tt.out) {
 				t.Errorf("got %v, expected %v", r, tt.out)
+			}
+		})
+	}
+}
+
+var registerAFIncrementTests = []struct {
+	in  uint8
+	out uint8
+}{
+	{0, 1},
+	{131, 132},
+	{255, 0},
+}
+
+func TestRegisterAFIncrement(t *testing.T) {
+	for _, tt := range registerAFIncrementTests {
+		r := RegisterAF{}
+
+		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
+			r.SetHi(tt.in)
+			r.Increment()
+			if out := r.Hi(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
+var registerAFDecrementTests = []struct {
+	in  uint8
+	out uint8
+}{
+	{0, 255},
+	{132, 131},
+	{1, 0},
+}
+
+func TestRegisterAFDecrement(t *testing.T) {
+	for _, tt := range registerAFDecrementTests {
+		r := RegisterAF{}
+
+		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
+			r.SetHi(tt.in)
+			r.Decrement()
+			if out := r.Hi(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
 			}
 		})
 	}
