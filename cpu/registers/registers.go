@@ -36,12 +36,12 @@ const (
 
 // Registers consists of six 16-bit registers.
 type Registers struct {
-	AF RegisterAF
-	BC Register16
-	DE Register16
-	HL Register16
-	SP uint16
-	PC uint16
+	af RegisterAF
+	bc Register16
+	de Register16
+	hl Register16
+	sp uint16
+	pc uint16
 }
 
 // NewRegisters returns a new Registers struct.
@@ -51,7 +51,7 @@ func NewRegisters() *Registers {
 		f: f,
 	}
 
-	return &Registers{AF: af}
+	return &Registers{af: af}
 }
 
 // Register returns a copy of register rr, and an errUnknownRegister error,
@@ -59,33 +59,33 @@ func NewRegisters() *Registers {
 func (r *Registers) Register(rr Register) (ret uint16, err error) {
 	switch rr {
 	case A:
-		ret = uint16(r.AF.a)
+		ret = uint16(r.af.a)
 	case F:
-		ret = uint16(r.AF.f)
+		ret = uint16(r.af.f)
 	case B:
-		ret = uint16(r.BC.hi)
+		ret = uint16(r.bc.hi)
 	case C:
-		ret = uint16(r.BC.lo)
+		ret = uint16(r.bc.lo)
 	case D:
-		ret = uint16(r.DE.hi)
+		ret = uint16(r.de.hi)
 	case E:
-		ret = uint16(r.DE.lo)
+		ret = uint16(r.de.lo)
 	case H:
-		ret = uint16(r.HL.hi)
+		ret = uint16(r.hl.hi)
 	case L:
-		ret = uint16(r.HL.lo)
+		ret = uint16(r.hl.lo)
 	case AF:
-		ret = r.AF.Word()
+		ret = r.af.Word()
 	case BC:
-		ret = r.BC.Word()
+		ret = r.bc.Word()
 	case DE:
-		ret = r.DE.Word()
+		ret = r.de.Word()
 	case HL:
-		ret = r.HL.Word()
+		ret = r.hl.Word()
 	case SP:
-		ret = r.SP
+		ret = r.sp
 	case PC:
-		ret = r.PC
+		ret = r.pc
 	default:
 		err = errUnknownRegister
 	}
@@ -98,33 +98,33 @@ func (r *Registers) Register(rr Register) (ret uint16, err error) {
 func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
 	switch rr {
 	case A:
-		r.AF.a = uint8(val)
+		r.af.a = uint8(val)
 	case F:
-		r.AF.f = flags.Flags(val)
+		r.af.f = flags.Flags(val)
 	case B:
-		r.BC.hi = uint8(val)
+		r.bc.hi = uint8(val)
 	case C:
-		r.BC.lo = uint8(val)
+		r.bc.lo = uint8(val)
 	case D:
-		r.DE.hi = uint8(val)
+		r.de.hi = uint8(val)
 	case E:
-		r.DE.lo = uint8(val)
+		r.de.lo = uint8(val)
 	case H:
-		r.HL.hi = uint8(val)
+		r.hl.hi = uint8(val)
 	case L:
-		r.HL.lo = uint8(val)
+		r.hl.lo = uint8(val)
 	case AF:
-		r.AF.SetWord(val)
+		r.af.SetWord(val)
 	case BC:
-		r.BC.SetWord(val)
+		r.bc.SetWord(val)
 	case DE:
-		r.DE.SetWord(val)
+		r.de.SetWord(val)
 	case HL:
-		r.HL.SetWord(val)
+		r.hl.SetWord(val)
 	case SP:
-		r.SP = val
+		r.sp = val
 	case PC:
-		r.PC = val
+		r.pc = val
 	default:
 		err = errUnknownRegister
 	}
@@ -137,29 +137,29 @@ func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
 func (r *Registers) Increment(rr Register) (err error) {
 	switch rr {
 	case A:
-		r.AF.Increment()
+		r.af.Increment()
 	case B:
-		r.BC.hi++
+		r.bc.hi++
 	case C:
-		r.BC.lo++
+		r.bc.lo++
 	case D:
-		r.DE.hi++
+		r.de.hi++
 	case E:
-		r.DE.lo++
+		r.de.lo++
 	case H:
-		r.HL.hi++
+		r.hl.hi++
 	case L:
-		r.HL.lo++
+		r.hl.lo++
 	case BC:
-		r.BC.Increment()
+		r.bc.Increment()
 	case DE:
-		r.DE.Increment()
+		r.de.Increment()
 	case HL:
-		r.HL.Increment()
+		r.hl.Increment()
 	case SP:
-		r.SP++
+		r.sp++
 	case PC:
-		r.PC++
+		r.pc++
 	case F, AF:
 		err = errFlagsIncrement
 	default:
@@ -174,29 +174,29 @@ func (r *Registers) Increment(rr Register) (err error) {
 func (r *Registers) Decrement(rr Register) (err error) {
 	switch rr {
 	case A:
-		r.AF.Decrement()
+		r.af.Decrement()
 	case B:
-		r.BC.hi--
+		r.bc.hi--
 	case C:
-		r.BC.lo--
+		r.bc.lo--
 	case D:
-		r.DE.hi--
+		r.de.hi--
 	case E:
-		r.DE.lo--
+		r.de.lo--
 	case H:
-		r.HL.hi--
+		r.hl.hi--
 	case L:
-		r.HL.lo--
+		r.hl.lo--
 	case BC:
-		r.BC.Decrement()
+		r.bc.Decrement()
 	case DE:
-		r.DE.Decrement()
+		r.de.Decrement()
 	case HL:
-		r.HL.Decrement()
+		r.hl.Decrement()
 	case SP:
-		r.SP--
+		r.sp--
 	case PC:
-		r.PC--
+		r.pc--
 	case F, AF:
 		err = errFlagsDecrement
 	default:
@@ -208,5 +208,5 @@ func (r *Registers) Decrement(rr Register) (err error) {
 
 func (r Registers) String() string {
 	s := "[AF=%s | BC=%s | DE=%s | HL=%s | SP=0x%04X | PC=0x%04X]"
-	return fmt.Sprintf(s, r.AF, r.BC, r.DE, r.HL, r.SP, r.PC)
+	return fmt.Sprintf(s, r.af, r.bc, r.de, r.hl, r.sp, r.pc)
 }

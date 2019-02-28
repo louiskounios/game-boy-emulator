@@ -27,7 +27,7 @@ func TestInstructions(t *testing.T) {
 
 	for _, tt := range instructionTests {
 		t.Run(fmt.Sprintf("opcode=0x%02X pc=%d val=%d", tt.opcode, tt.pc, tt.val), func(t *testing.T) {
-			cpu.r.PC = tt.pc
+			cpu.r.SetRegister(registers.PC, tt.pc)
 			cpu.m.SetByte(tt.pc, tt.val)
 			instructions[tt.opcode].execute(cpu)
 			if out, err := cpu.r.Register(tt.register); uint8(out) != tt.val || err != nil {

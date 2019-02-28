@@ -102,7 +102,8 @@ func (cpu *CPU) PutAIntoOffsetImmediateAddress() {
 // PutNIntoR puts the value stored in the memory location referenced by the
 // program counter into register to.
 func (cpu *CPU) PutNIntoR(to registers.Register) {
-	val := uint16(cpu.m.Byte(cpu.r.PC))
+	pc, _ := cpu.r.Register(registers.PC)
+	val := uint16(cpu.m.Byte(pc))
 	cpu.r.SetRegister(to, val)
 }
 

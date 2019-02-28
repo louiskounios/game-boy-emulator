@@ -29,24 +29,24 @@ var registersTests = []struct {
 func TestRegister(t *testing.T) {
 	for _, tt := range registersTests {
 		r := Registers{
-			AF: RegisterAF{
+			af: RegisterAF{
 				a: 1,
 				f: 1,
 			},
-			BC: Register16{
+			bc: Register16{
 				hi: 255,
 				lo: 255,
 			},
-			DE: Register16{
+			de: Register16{
 				hi: 120,
 				lo: 208,
 			},
-			HL: Register16{
+			hl: Register16{
 				hi: 217,
 				lo: 3,
 			},
-			SP: 10930,
-			PC: 48031,
+			sp: 10930,
+			pc: 48031,
 		}
 
 		t.Run(fmt.Sprintf("r=%d", tt.r), func(t *testing.T) {
