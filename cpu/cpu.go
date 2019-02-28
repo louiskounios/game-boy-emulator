@@ -44,10 +44,10 @@ func (cpu *CPU) PutRIntoR(from, to registers.Register) {
 
 // PutAIntoNNAddress calculates a 16-bit memory address by combining the two
 // 8-bit values that are stored in memory locations referenced by the program
-// counter and [Program Counter+1].
+// counter and [PC+1].
 // It then saves the contents of register A into that address in memory.
 func (cpu *CPU) PutAIntoNNAddress() {
-	address := cpu.addressFromProgramCounter()
+	address := cpu.wordFromProgramCounter()
 	cpu.putRegisterIntoMemory(registers.A, address)
 }
 
@@ -85,16 +85,18 @@ func (cpu *CPU) PutAIntoHLAddressThenDecrementHL() {
 	cpu.decrementRegister(registers.HL)
 }
 
-// PutAIntoCPlusFF00Address puts the value stored in Register A into the memory
-// location resulting from the addition [Register C+0xFF00].
-func (cpu *CPU) PutAIntoCPlusFF00Address() {
-	cpu.putRegisterIntoMaskedAddress(registers.C, registers.A)
+// PutAIntoOffsetCAddress puts the value stored in Register A into the offset
+// memory location resulting from the addition [C+0xFF00].
+func (cpu *CPU) PutAIntoOffsetCAddress() {
+	address := cpu.offsetAddressFromC()
+	cpu.putRegisterIntoMemory(registers.A, address)
 }
 
-// PutAIntoNPlusFF00Address puts the value stored in register A into the memory
-// location resulting from the addition [Program Counter+0xFF00].
-func (cpu *CPU) PutAIntoNPlusFF00Address() {
-	cpu.putRegisterIntoMaskedAddress(registers.PC, registers.A)
+// PutAIntoOffsetImmediateAddress puts the value stored in Register A into the
+// offset memory location resulting from the addition [Memory[PC]+0xFF00].
+func (cpu *CPU) PutAIntoOffsetImmediateAddress() {
+	address := cpu.offsetAddressFromImmediate()
+	cpu.putRegisterIntoMemory(registers.A, address)
 }
 
 // PutNIntoR puts the value stored in the memory location referenced by the
@@ -104,25 +106,28 @@ func (cpu *CPU) PutNIntoR(to registers.Register) {
 	cpu.r.SetRegister(to, val)
 }
 
-// PutNNIntoA calculates a 16-bit memory address by combining the two 8-bit
-// values that are stored in memory locations referenced by the program
-// counter and [Program Counter+1].
+// PutNNDereferenceIntoA calculates a 16-bit memory address by combining the two
+// 8-bit values that are stored in memory locations referenced by the program
+// counter and [PC+1].
 // It then saves the contents of the memory at that address into register A.
-func (cpu *CPU) PutNNIntoA() {
-	address := cpu.addressFromProgramCounter()
+func (cpu *CPU) PutNNDereferenceIntoA() {
+	address := cpu.wordFromProgramCounter()
 	cpu.putMemoryIntoRegister(address, registers.A)
 }
 
-// PutCPlusFF00IntoA puts the value stored in the memory location resulting from
-// the addition [Program Counter+0xFF00] into register A.
-func (cpu *CPU) PutCPlusFF00IntoA() {
-	cpu.putMaskedAddressValueIntoRegister(registers.C, registers.A)
+// PutOffsetCDereferenceIntoA puts the value stored in the offset memory
+// location resulting from the addition [C+0xFF00] into register A.
+func (cpu *CPU) PutOffsetCDereferenceIntoA() {
+	address := cpu.offsetAddressFromC()
+	cpu.putMemoryIntoRegister(address, registers.A)
 }
 
-// PutNPlusFF00IntoA puts the value stored in the memory location resulting from
-// the addition [Program Counter+0xFF00] into register A.
-func (cpu *CPU) PutNPlusFF00IntoA() {
-	cpu.putMaskedAddressValueIntoRegister(registers.PC, registers.A)
+// PutOffsetImmediateDereferenceIntoA puts the value stored in the offset
+// memory location resulting from the addition [Memory[PC]+0xFF00] into
+// register A.
+func (cpu *CPU) PutOffsetImmediateDereferenceIntoA() {
+	address := cpu.offsetAddressFromImmediate()
+	cpu.putMemoryIntoRegister(address, registers.A)
 }
 
 // PutBCDereferenceIntoA puts the value stored in the memory location referenced
@@ -159,13 +164,27 @@ func (cpu *CPU) PutHLDereferenceIntoAThenDecrementHL() {
 	cpu.decrementRegister(registers.HL)
 }
 
-// PutNIntoHLAddress puts the value stored in the memory location referenced by
-// the program counter into the memory location referenced by the HL register.
-func (cpu *CPU) PutNIntoHLAddress() {
+// PutNDereferenceIntoHLAddress puts the value stored in the memory location
+// referenced by the program counter into the memory location referenced by the
+// HL register.
+func (cpu *CPU) PutNDereferenceIntoHLAddress() {
 	hl, _ := cpu.r.Register(registers.HL)
 	pc, _ := cpu.r.Register(registers.PC)
 	n := cpu.m.Byte(pc)
 	cpu.m.SetByte(hl, n)
+}
+
+/**
+ * 16-bit loads
+ */
+
+// PutNNIntoRR calculates a 16-bit value by combining the two 8-bit
+// values that are stored in memory locations referenced by the program
+// counter and [PC+1].
+// It then saves that value into register to.
+func (cpu *CPU) PutNNIntoRR(to registers.Register) {
+	val := cpu.wordFromProgramCounter()
+	cpu.r.SetRegister(to, val)
 }
 
 /**
@@ -181,16 +200,6 @@ func (cpu *CPU) putRegisterDereferenceIntoRegister(fr, tr registers.Register) {
 	address, _ := cpu.r.Register(fr)
 	val := uint16(cpu.m.Byte(address))
 	cpu.r.SetRegister(tr, val)
-}
-
-func (cpu *CPU) putRegisterIntoMaskedAddress(ar, vr registers.Register) {
-	address := cpu.maskedAddress(ar)
-	cpu.putRegisterIntoMemory(vr, address)
-}
-
-func (cpu *CPU) putMaskedAddressValueIntoRegister(ar, tr registers.Register) {
-	address := cpu.maskedAddress(ar)
-	cpu.putMemoryIntoRegister(address, tr)
 }
 
 func (cpu *CPU) putRegisterIntoMemory(r registers.Register, address uint16) {
@@ -211,14 +220,23 @@ func (cpu *CPU) decrementRegister(r registers.Register) {
 	cpu.r.Decrement(r)
 }
 
-func (cpu *CPU) addressFromProgramCounter() (address uint16) {
+func (cpu *CPU) wordFromProgramCounter() (word uint16) {
 	pc, _ := cpu.r.Register(registers.PC)
-	address = cpu.m.Word(pc)
-	return address
+	word = cpu.m.Word(pc)
+	return word
 }
 
-func (cpu *CPU) maskedAddress(r registers.Register) (address uint16) {
-	address, _ = cpu.r.Register(r)
-	address += 0xFF00
-	return address
+func (cpu *CPU) offsetAddressFromImmediate() uint16 {
+	pc, _ := cpu.r.Register(registers.PC)
+	address := uint16(cpu.m.Byte(pc))
+	return cpu.offsetAddress(address)
+}
+
+func (cpu *CPU) offsetAddressFromC() uint16 {
+	c, _ := cpu.r.Register(registers.C)
+	return cpu.offsetAddress(c)
+}
+
+func (cpu *CPU) offsetAddress(address uint16) uint16 {
+	return address + 0xFF00
 }
