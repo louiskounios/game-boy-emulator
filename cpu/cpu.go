@@ -178,6 +178,20 @@ func (cpu *CPU) PutNDereferenceIntoHLAddress() {
  * 16-bit loads
  */
 
+// PutHLIntoSP puts the value stored in register HL into register SP.
+func (cpu *CPU) PutHLIntoSP() {
+	val, _ := cpu.r.Register(registers.HL)
+	cpu.r.SetRegister(registers.SP, val)
+}
+
+// PutSPIntoNNAddress puts the value stored in register SP into the memory
+// locations referenced by the program counter and [PC+1].
+func (cpu *CPU) PutSPIntoNNAddress() {
+	address := cpu.wordFromProgramCounter()
+	val, _ := cpu.r.Register(registers.SP)
+	cpu.m.SetWord(address, val)
+}
+
 // PutNNIntoRR calculates a 16-bit value by combining the two 8-bit
 // values that are stored in memory locations referenced by the program
 // counter and [PC+1].

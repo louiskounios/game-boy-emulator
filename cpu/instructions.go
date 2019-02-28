@@ -165,7 +165,10 @@ var instructions = instructionSet{
 	 * 16-bit loads
 	 */
 
-	// Memory (address=PC and PC+1) -> Register (BC, DE, HL, SP)
+	// Register (HL) -> Register (SP)
+	0xF9: &instruction{0xF9, 2, "LD SP,HL", func(cpu *CPU) { cpu.PutHLIntoSP() }},
+
+	// Memory[PC and PC+1] -> Register (BC, DE, HL, SP)
 	0x01: &instruction{0x01, 4, "LD BC,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.BC) }},
 	0x11: &instruction{0x11, 4, "LD DE,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.DE) }},
 	0x21: &instruction{0x21, 4, "LD HL,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.HL) }},
