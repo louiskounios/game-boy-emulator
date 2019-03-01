@@ -206,6 +206,26 @@ func (r *Registers) Decrement(rr Register) (err error) {
 	return err
 }
 
+func (r Registers) GetFlag(flag flags.Flag) (uint8, error) {
+	return r.af.f.Get(flag)
+}
+
+func (r Registers) IsFlagSet(flag flags.Flag) (bool, error) {
+	return r.af.f.IsSet(flag)
+}
+
+func (r *Registers) ResetFlag(flag flags.Flag) error {
+	return r.af.f.Reset(flag)
+}
+
+func (r *Registers) SetFlag(flag flags.Flag) error {
+	return r.af.f.Set(flag)
+}
+
+func (r *Registers) ToggleFlag(flag flags.Flag) error {
+	return r.af.f.Toggle(flag)
+}
+
 func (r Registers) String() string {
 	s := "[AF=%s | BC=%s | DE=%s | HL=%s | SP=0x%04X | PC=0x%04X]"
 	return fmt.Sprintf(s, r.af, r.bc, r.de, r.hl, r.sp, r.pc)

@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"github.com/loizoskounios/game-boy-emulator/cpu/registers"
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 	"github.com/loizoskounios/game-boy-emulator/mmu"
 )
 
@@ -193,6 +194,28 @@ func (cpu *CPU) PutSPIntoNNAddress() {
 	cpu.m.SetWord(address, val)
 }
 
+// PutOffsetSPIntoHL puts the value resulting from the addition [SP+Memory[PC]]
+// into register HL, with the value fetched from memory being treated as a
+// signed integer.
+// Flags are updated accordingly.
+func (cpu *CPU) PutOffsetSPIntoHL() {
+	sp, _ := cpu.r.Register(registers.SP)
+	pc, _ := cpu.r.Register(registers.PC)
+	offset, carry, hcarry := addSignedUnsigned(cpu.m.Byte(pc), sp)
+	cpu.r.SetRegister(registers.HL, offset)
+
+	if carry {
+		cpu.r.SetFlag(flags.C)
+	}
+
+	if hcarry {
+		cpu.r.SetFlag(flags.H)
+	}
+
+	cpu.r.ResetFlag(flags.N)
+	cpu.r.ResetFlag(flags.Z)
+}
+
 // PutNNIntoRR calculates a 16-bit value by combining the two 8-bit
 // values that are stored in memory locations referenced by the program
 // counter and [PC+1].
@@ -254,4 +277,38 @@ func (cpu *CPU) offsetAddressFromC() uint16 {
 
 func (cpu *CPU) offsetAddress(address uint16) uint16 {
 	return address + 0xFF00
+}
+
+// Adds uint8 s to uint16 u, with s being treated as a signed variable.
+// Returns three values.
+// result is the result of the addition; carry is true if the result overflowed
+// underflowed, false otherwise; hcarry is true if the result cannot fit within
+// 11 bits.
+func addSignedUnsigned(s uint8, u uint16) (result uint16, carry, hcarry bool) {
+	// Stores the addition of the two numbers masked on their 11 least significant
+	// bits.
+	var partialResult uint16
+
+	if s > 127 {
+		ss := uint16(-s)
+		result = u - ss
+		if result > u {
+			carry = true
+		}
+		partialResult = (u & 0x7FF) - (ss & 0x7FF)
+	} else {
+		ss := uint16(s)
+		result = u + ss
+		if result < u {
+			carry = true
+		}
+		partialResult = (u & 0x7FF) + (ss & 0x7FF)
+	}
+
+	// We have a half carry if the partial result cannot fit within 11 bits.
+	if partialResult > 0x7FF {
+		hcarry = true
+	}
+
+	return result, carry, hcarry
 }
