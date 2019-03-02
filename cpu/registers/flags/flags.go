@@ -68,6 +68,16 @@ func (flags Flags) IsSet(f Flag) (bool, error) {
 	return ret == 1, err
 }
 
+// Put sets flag f if set is true, and resets it otherwise. An error is
+// returned, if encountered.
+func (flags *Flags) Put(f Flag, set bool) error {
+	if set {
+		return flags.Set(f)
+	}
+
+	return flags.Reset(f)
+}
+
 // Reset resets flag f. flags is modified in place. An errUnknownFlag error is
 // returned, if encountered.
 func (flags *Flags) Reset(f Flag) (err error) {

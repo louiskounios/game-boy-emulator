@@ -58,6 +58,41 @@ func TestIsSet(t *testing.T) {
 	}
 }
 
+var putTests = []struct {
+	flags *Flags
+	flag  Flag
+	set   bool
+}{
+	{newFlags(0), C, true},
+	{newFlags(0), C, false},
+	{newFlags(16), C, true},
+	{newFlags(16), C, false},
+	{newFlags(0), H, true},
+	{newFlags(0), H, false},
+	{newFlags(32), H, true},
+	{newFlags(32), H, false},
+	{newFlags(0), N, true},
+	{newFlags(0), N, false},
+	{newFlags(64), N, true},
+	{newFlags(64), N, false},
+	{newFlags(0), Z, true},
+	{newFlags(0), Z, false},
+	{newFlags(128), Z, true},
+	{newFlags(128), Z, false},
+}
+
+func TestPut(t *testing.T) {
+	for _, tt := range putTests {
+		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
+			tt.flags.Put(tt.flag, tt.set)
+
+			if out, _ := tt.flags.IsSet(tt.flag); out != tt.set {
+				t.Errorf("got %t, expected %t", out, false)
+			}
+		})
+	}
+}
+
 var resetTests = []struct {
 	flags *Flags
 	flag  Flag
