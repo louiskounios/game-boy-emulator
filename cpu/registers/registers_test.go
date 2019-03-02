@@ -21,6 +21,7 @@ var registersTests = []struct {
 	{AF, 257, nil},
 	{BC, 65535, nil},
 	{DE, 30928, nil},
+	{HL, 55555, nil},
 	{SP, 10930, nil},
 	{PC, 48031, nil},
 	{Register(30), 0, errUnknownRegister},
@@ -77,6 +78,7 @@ var setRegistersTests = []struct {
 	{AF, 257, nil},
 	{BC, 65535, nil},
 	{DE, 30928, nil},
+	{HL, 55555, nil},
 	{SP, 10930, nil},
 	{PC, 48031, nil},
 	{Register(30), 0, errUnknownRegister},
@@ -100,6 +102,47 @@ func TestSetRegister(t *testing.T) {
 	}
 }
 
+var incrementByTests = []struct {
+	r   Register
+	val uint16
+	by  uint8
+	out uint16
+	err error
+}{
+	{A, 255, 1, 0, nil},
+	{F, 254, 2, 254, errFlagsIncrement},
+	{B, 253, 3, 0, nil},
+	{C, 252, 4, 0, nil},
+	{D, 251, 5, 0, nil},
+	{E, 250, 6, 0, nil},
+	{H, 249, 7, 0, nil},
+	{L, 248, 8, 0, nil},
+	{AF, 247, 9, 247, errFlagsIncrement},
+	{BC, 246, 10, 256, nil},
+	{DE, 245, 11, 256, nil},
+	{HL, 244, 12, 256, nil},
+	{SP, 243, 13, 256, nil},
+	{PC, 242, 14, 256, nil},
+	{Register(30), 241, 15, 0, errUnknownRegister},
+}
+
+func TestIncrementBy(t *testing.T) {
+	for _, tt := range incrementByTests {
+		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
+			r := Registers{}
+			r.SetRegister(tt.r, tt.val)
+
+			if err := r.IncrementBy(tt.r, tt.by); err != tt.err {
+				t.Errorf("got %#v, expected %#v", err, tt.err)
+			}
+
+			if out, _ := r.Register(tt.r); out != tt.out {
+				t.Errorf("got %v, expected %v", out, tt.out)
+			}
+		})
+	}
+}
+
 var incrementTests = []struct {
 	r   Register
 	val uint16
@@ -117,6 +160,7 @@ var incrementTests = []struct {
 	{AF, 255, 255, errFlagsIncrement},
 	{BC, 255, 256, nil},
 	{DE, 255, 256, nil},
+	{HL, 255, 256, nil},
 	{SP, 255, 256, nil},
 	{PC, 255, 256, nil},
 	{Register(30), 255, 0, errUnknownRegister},
@@ -129,6 +173,47 @@ func TestIncrement(t *testing.T) {
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.Increment(tt.r); err != tt.err {
+				t.Errorf("got %#v, expected %#v", err, tt.err)
+			}
+
+			if out, _ := r.Register(tt.r); out != tt.out {
+				t.Errorf("got %v, expected %v", out, tt.out)
+			}
+		})
+	}
+}
+
+var decrementByTests = []struct {
+	r   Register
+	val uint16
+	by  uint8
+	out uint16
+	err error
+}{
+	{A, 0, 1, 255, nil},
+	{F, 1, 2, 1, errFlagsDecrement},
+	{B, 2, 3, 255, nil},
+	{C, 3, 4, 255, nil},
+	{D, 4, 5, 255, nil},
+	{E, 5, 6, 255, nil},
+	{H, 6, 7, 255, nil},
+	{L, 7, 8, 255, nil},
+	{AF, 8, 9, 8, errFlagsDecrement},
+	{BC, 9, 10, 65535, nil},
+	{DE, 10, 11, 65535, nil},
+	{HL, 11, 12, 65535, nil},
+	{SP, 12, 13, 65535, nil},
+	{PC, 13, 14, 65535, nil},
+	{Register(30), 14, 15, 0, errUnknownRegister},
+}
+
+func TestDecrementBy(t *testing.T) {
+	for _, tt := range decrementByTests {
+		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
+			r := Registers{}
+			r.SetRegister(tt.r, tt.val)
+
+			if err := r.DecrementBy(tt.r, tt.by); err != tt.err {
 				t.Errorf("got %#v, expected %#v", err, tt.err)
 			}
 
@@ -156,6 +241,7 @@ var decrementTests = []struct {
 	{AF, 256, 256, errFlagsDecrement},
 	{BC, 256, 255, nil},
 	{DE, 256, 255, nil},
+	{HL, 256, 255, nil},
 	{SP, 256, 255, nil},
 	{PC, 256, 255, nil},
 	{Register(30), 256, 0, errUnknownRegister},

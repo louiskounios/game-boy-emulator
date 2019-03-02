@@ -156,6 +156,30 @@ func TestRegister16SetWord(t *testing.T) {
 	}
 }
 
+var register16IncrementByTests = []struct {
+	in  uint16
+	by  uint16
+	out uint16
+}{
+	{0, 1, 1},
+	{255, 2, 257},
+	{65535, 3, 2},
+}
+
+func TestRegister16IncrementBy(t *testing.T) {
+	for _, tt := range register16IncrementByTests {
+		r := Register16{}
+
+		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
+			r.SetWord(tt.in)
+			r.IncrementBy(tt.by)
+			if out := r.Word(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
 var register16IncrementTests = []struct {
 	in  uint16
 	out uint16
@@ -172,6 +196,31 @@ func TestRegister16Increment(t *testing.T) {
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			r.SetWord(tt.in)
 			r.Increment()
+			if out := r.Word(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
+var register16DecrementByTests = []struct {
+	in  uint16
+	by  uint16
+	out uint16
+}{
+	{0, 1, 65535},
+	{0, 5, 65531},
+	{256, 2, 254},
+	{2, 3, 65535},
+}
+
+func TestRegister16DecrementBy(t *testing.T) {
+	for _, tt := range register16DecrementByTests {
+		r := Register16{}
+
+		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
+			r.SetWord(tt.in)
+			r.DecrementBy(tt.by)
 			if out := r.Word(); out != tt.out {
 				t.Errorf("got %d, expected %d", out, tt.out)
 			}
@@ -353,6 +402,30 @@ func TestRegisterAFSetWord(t *testing.T) {
 	}
 }
 
+var registerAFIncrementByTests = []struct {
+	in  uint8
+	by  uint16
+	out uint8
+}{
+	{0, 1, 1},
+	{132, 2, 134},
+	{255, 3, 2},
+}
+
+func TestRegisterAFIncrementBy(t *testing.T) {
+	for _, tt := range registerAFIncrementByTests {
+		r := RegisterAF{}
+
+		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
+			r.SetHi(tt.in)
+			r.IncrementBy(tt.by)
+			if out := r.Hi(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
 var registerAFIncrementTests = []struct {
 	in  uint8
 	out uint8
@@ -369,6 +442,31 @@ func TestRegisterAFIncrement(t *testing.T) {
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			r.SetHi(tt.in)
 			r.Increment()
+			if out := r.Hi(); out != tt.out {
+				t.Errorf("got %d, expected %d", out, tt.out)
+			}
+		})
+	}
+}
+
+var registerAFDecrementByTests = []struct {
+	in  uint8
+	by  uint16
+	out uint8
+}{
+	{0, 1, 255},
+	{0, 5, 251},
+	{132, 2, 130},
+	{255, 3, 252},
+}
+
+func TestRegisterAFDecrementBy(t *testing.T) {
+	for _, tt := range registerAFDecrementByTests {
+		r := RegisterAF{}
+
+		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
+			r.SetHi(tt.in)
+			r.DecrementBy(tt.by)
 			if out := r.Hi(); out != tt.out {
 				t.Errorf("got %d, expected %d", out, tt.out)
 			}

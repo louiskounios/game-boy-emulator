@@ -189,36 +189,79 @@ func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
 	return err
 }
 
+// IncrementBy increments register rr by `by`. r is modified in place.
+// It returns an error, if encountered.
+func (r *Registers) IncrementBy(rr Register, by uint8) (err error) {
+	switch rr {
+	case A:
+		r.af.IncrementBy(uint16(by))
+	case B:
+		r.bc.hi += by
+	case C:
+		r.bc.lo += by
+	case D:
+		r.de.hi += by
+	case E:
+		r.de.lo += by
+	case H:
+		r.hl.hi += by
+	case L:
+		r.hl.lo += by
+	case BC:
+		r.bc.IncrementBy(uint16(by))
+	case DE:
+		r.de.IncrementBy(uint16(by))
+	case HL:
+		r.hl.IncrementBy(uint16(by))
+	case SP:
+		r.sp += uint16(by)
+	case PC:
+		r.pc += uint16(by)
+	case F, AF:
+		err = errFlagsIncrement
+	default:
+		err = errUnknownRegister
+	}
+
+	return err
+}
+
 // Increment increments register rr by 1. r is modified in place.
 // It returns an error, if encountered.
 func (r *Registers) Increment(rr Register) (err error) {
+	return r.IncrementBy(rr, 1)
+}
+
+// DecrementBy decrements register rr by by `by`. r is modified in place.
+// It returns an error, if encountered.
+func (r *Registers) DecrementBy(rr Register, by uint8) (err error) {
 	switch rr {
 	case A:
-		r.af.Increment()
+		r.af.DecrementBy(uint16(by))
 	case B:
-		r.bc.hi++
+		r.bc.hi -= by
 	case C:
-		r.bc.lo++
+		r.bc.lo -= by
 	case D:
-		r.de.hi++
+		r.de.hi -= by
 	case E:
-		r.de.lo++
+		r.de.lo -= by
 	case H:
-		r.hl.hi++
+		r.hl.hi -= by
 	case L:
-		r.hl.lo++
+		r.hl.lo -= by
 	case BC:
-		r.bc.Increment()
+		r.bc.DecrementBy(uint16(by))
 	case DE:
-		r.de.Increment()
+		r.de.DecrementBy(uint16(by))
 	case HL:
-		r.hl.Increment()
+		r.hl.DecrementBy(uint16(by))
 	case SP:
-		r.sp++
+		r.sp -= uint16(by)
 	case PC:
-		r.pc++
+		r.pc -= uint16(by)
 	case F, AF:
-		err = errFlagsIncrement
+		err = errFlagsDecrement
 	default:
 		err = errUnknownRegister
 	}
@@ -229,38 +272,7 @@ func (r *Registers) Increment(rr Register) (err error) {
 // Decrement decrements register rr by by 1. r is modified in place.
 // It returns an error, if encountered.
 func (r *Registers) Decrement(rr Register) (err error) {
-	switch rr {
-	case A:
-		r.af.Decrement()
-	case B:
-		r.bc.hi--
-	case C:
-		r.bc.lo--
-	case D:
-		r.de.hi--
-	case E:
-		r.de.lo--
-	case H:
-		r.hl.hi--
-	case L:
-		r.hl.lo--
-	case BC:
-		r.bc.Decrement()
-	case DE:
-		r.de.Decrement()
-	case HL:
-		r.hl.Decrement()
-	case SP:
-		r.sp--
-	case PC:
-		r.pc--
-	case F, AF:
-		err = errFlagsDecrement
-	default:
-		err = errUnknownRegister
-	}
-
-	return err
+	return r.DecrementBy(rr, 1)
 }
 
 // GetFlag returns flag's value and an error, if encountered.

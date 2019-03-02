@@ -186,13 +186,15 @@ func (cpu *CPU) PutHLIntoSP() {
 	cpu.r.SetRegister(registers.SP, val)
 }
 
+// PushRROntoStack pushes the value stored in register from onto the stack, then
+// decrements the stack pointer by 2.
+// The 8 most significant bits of register from are stored in Memory[SP-1].
+// The 8 least significant bits of register from are stored in Memory[SP-2].
 func (cpu *CPU) PushRROntoStack(from registers.Register) {
 	sp, _ := cpu.r.Register(registers.SP)
-	hi, lo, _ := cpu.r.GetComponents(from)
-	cpu.m.SetByte(sp-1, hi)
-	cpu.m.SetByte(sp-2, lo)
-	cpu.r.Decrement(registers.SP)
-	cpu.r.Decrement(registers.SP)
+	val, _ := cpu.r.Register(from)
+	cpu.m.SetWord(sp-2, val)
+	cpu.r.DecrementBy(registers.SP, 2)
 }
 
 // PutSPIntoNNAddress puts the value stored in register SP into the memory
@@ -223,6 +225,17 @@ func (cpu *CPU) PutOffsetSPIntoHL() {
 
 	cpu.r.ResetFlag(flags.N)
 	cpu.r.ResetFlag(flags.Z)
+}
+
+// PopStackIntoRR pops the value stored in memory locations [SP] and [SP+1],
+// and saves it into register to. The stack pointer is then incremented by 2.
+// The 8 most significant bits of register to come from Memory[SP+1].
+// The 8 least significant bits of register to come from Memory[SP].
+func (cpu *CPU) PopStackIntoRR(to registers.Register) {
+	sp, _ := cpu.r.Register(registers.SP)
+	val := cpu.m.Word(sp)
+	cpu.r.SetRegister(to, val)
+	cpu.r.IncrementBy(registers.SP, 2)
 }
 
 // PutNNIntoRR calculates a 16-bit value by combining the two 8-bit

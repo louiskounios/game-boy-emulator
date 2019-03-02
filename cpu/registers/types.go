@@ -80,18 +80,28 @@ func (r *Register16) SetWord(val uint16) {
 	r.lo = uint8(val)
 }
 
+// IncrementBy increments the 16-bit combined version of the register by `by`.
+func (r *Register16) IncrementBy(by uint16) {
+	w := r.Word()
+	w += by
+	r.SetWord(w)
+}
+
 // Increment increments the 16-bit combined version of the register by 1.
 func (r *Register16) Increment() {
+	r.IncrementBy(1)
+}
+
+// DecrementBy decrements the 16-bit combined version of the register by `by`.
+func (r *Register16) DecrementBy(by uint16) {
 	w := r.Word()
-	w++
+	w -= by
 	r.SetWord(w)
 }
 
 // Decrement decrements the 16-bit combined version of the register by 1.
 func (r *Register16) Decrement() {
-	w := r.Word()
-	w--
-	r.SetWord(w)
+	r.DecrementBy(1)
 }
 
 func (r Register16) String() string {
@@ -160,14 +170,24 @@ func (r *RegisterAF) SetWord(val uint16) {
 	r.f = flags.Flags(val)
 }
 
+// IncrementBy increments the 8-bit register A by `by`.
+func (r *RegisterAF) IncrementBy(by uint16) {
+	r.a += uint8(by)
+}
+
 // Increment increments the 8-bit register A by 1.
 func (r *RegisterAF) Increment() {
-	r.a++
+	r.IncrementBy(1)
+}
+
+// DecrementBy decrements the 8-bit register A by `by`.
+func (r *RegisterAF) DecrementBy(by uint16) {
+	r.a -= uint8(by)
 }
 
 // Decrement decrements the 8-bit register A by 1.
 func (r *RegisterAF) Decrement() {
-	r.a--
+	r.DecrementBy(1)
 }
 
 func (r RegisterAF) String() string {

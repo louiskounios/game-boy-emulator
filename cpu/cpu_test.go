@@ -27,7 +27,7 @@ func TestAddSignedUnsigned(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("unsigned=%d asSigned=%d", test.unsigned, test.asSigned), func(t *testing.T) {
 			r, c, hc := addSignedUnsigned(test.asSigned, test.unsigned)
-			if r != test.result || c != test.carry || true {
+			if r != test.result || c != test.carry {
 				t.Errorf("got %d %t %t, expected %d %t", r, c, hc, test.result, test.carry)
 			}
 		})
