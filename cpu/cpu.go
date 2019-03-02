@@ -215,14 +215,8 @@ func (cpu *CPU) PutOffsetSPIntoHL() {
 	offset, carry, hcarry := addSignedUnsigned(cpu.m.Byte(pc), sp)
 	cpu.r.SetRegister(registers.HL, offset)
 
-	if carry {
-		cpu.r.SetFlag(flags.C)
-	}
-
-	if hcarry {
-		cpu.r.SetFlag(flags.H)
-	}
-
+	cpu.r.PutFlag(flags.C, carry)
+	cpu.r.PutFlag(flags.H, hcarry)
 	cpu.r.ResetFlag(flags.N)
 	cpu.r.ResetFlag(flags.Z)
 }

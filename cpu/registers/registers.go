@@ -285,6 +285,12 @@ func (r Registers) IsFlagSet(flag flags.Flag) (bool, error) {
 	return r.af.f.IsSet(flag)
 }
 
+// PutFlag sets flag if set is true, and resets it otherwise. An error is
+// returned, if encountered.
+func (r *Registers) PutFlag(flag flags.Flag, set bool) error {
+	return r.af.f.Put(flag, set)
+}
+
 // ResetFlag resets flag, and returns an error, if encountered.
 func (r *Registers) ResetFlag(flag flags.Flag) error {
 	return r.af.f.Reset(flag)
