@@ -34,6 +34,41 @@ const (
 	PC
 )
 
+func (register Register) String() string {
+	switch register {
+	case 0:
+		return "A"
+	case 1:
+		return "F"
+	case 2:
+		return "B"
+	case 3:
+		return "C"
+	case 4:
+		return "D"
+	case 5:
+		return "E"
+	case 6:
+		return "H"
+	case 7:
+		return "L"
+	case 8:
+		return "AF"
+	case 9:
+		return "BC"
+	case 10:
+		return "DE"
+	case 11:
+		return "HL"
+	case 12:
+		return "SP"
+	case 13:
+		return "PC"
+	default:
+		return "?"
+	}
+}
+
 // Registers consists of six 16-bit registers.
 type Registers struct {
 	af RegisterAF
@@ -52,6 +87,28 @@ func NewRegisters() *Registers {
 	}
 
 	return &Registers{af: af}
+}
+
+// GetComponents returns a copy of the hi and lo 8-bit components of register rr,
+// and an errUnknownRegister error, if encountered.
+func (r Registers) GetComponents(rr Register) (hi, lo uint8, err error) {
+	var crh CompoundRegisterHandler
+
+	switch rr {
+	case AF:
+		crh = &r.af
+	case BC:
+		crh = &r.bc
+	case DE:
+		crh = &r.de
+	case HL:
+		crh = &r.hl
+	default:
+		err = errUnknownRegister
+	}
+
+	hi, lo = crh.Hi(), crh.Lo()
+	return hi, lo, err
 }
 
 // Register returns a copy of register rr, and an errUnknownRegister error,
@@ -206,22 +263,27 @@ func (r *Registers) Decrement(rr Register) (err error) {
 	return err
 }
 
+// GetFlag returns flag's value and an error, if encountered.
 func (r Registers) GetFlag(flag flags.Flag) (uint8, error) {
 	return r.af.f.Get(flag)
 }
 
+// IsFlagSet returns whether flag is set or not and an error, if encountered.
 func (r Registers) IsFlagSet(flag flags.Flag) (bool, error) {
 	return r.af.f.IsSet(flag)
 }
 
+// ResetFlag resets flag, and returns an error, if encountered.
 func (r *Registers) ResetFlag(flag flags.Flag) error {
 	return r.af.f.Reset(flag)
 }
 
+// SetFlag sets flag, and returns an error, if encountered.
 func (r *Registers) SetFlag(flag flags.Flag) error {
 	return r.af.f.Set(flag)
 }
 
+// ToggleFlag toggles flag, and returns an error, if encountered.
 func (r *Registers) ToggleFlag(flag flags.Flag) error {
 	return r.af.f.Toggle(flag)
 }

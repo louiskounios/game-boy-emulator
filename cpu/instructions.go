@@ -95,7 +95,7 @@ var instructions = instructionSet{
 	// Register (A) -> Memory[BC]
 	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
 
-	// Register (A) -> Memory[BC]
+	// Register (A) -> Memory[DE]
 	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
 
 	// Register (A, B, C, D, E, H, L) -> Memory[HL]
@@ -168,9 +168,15 @@ var instructions = instructionSet{
 	// Register (HL) -> Register (SP)
 	0xF9: &instruction{0xF9, 2, "LD SP,HL", func(cpu *CPU) { cpu.PutHLIntoSP() }},
 
+	// Register (SP) -> Memory[PC and PC+1]
+	0x08: &instruction{0x08, 5, "LD (a16),SP", func(cpu *CPU) { cpu.PutSPIntoNNAddress() }},
+
+	// Memory[PC] + Register (SP) -> Register (HL)
+	0xF8: &instruction{0xF8, 3, "LD HL,SP+r8", func(cpu *CPU) { cpu.PutOffsetSPIntoHL() }},
+
 	// Memory[PC and PC+1] -> Register (BC, DE, HL, SP)
-	0x01: &instruction{0x01, 4, "LD BC,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.BC) }},
-	0x11: &instruction{0x11, 4, "LD DE,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.DE) }},
-	0x21: &instruction{0x21, 4, "LD HL,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.HL) }},
-	0x31: &instruction{0x31, 4, "LD SP,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.SP) }},
+	0x01: &instruction{0x01, 3, "LD BC,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.BC) }},
+	0x11: &instruction{0x11, 3, "LD DE,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.DE) }},
+	0x21: &instruction{0x21, 3, "LD HL,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.HL) }},
+	0x31: &instruction{0x31, 3, "LD SP,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.SP) }},
 }

@@ -49,7 +49,7 @@ func TestRegister(t *testing.T) {
 			pc: 48031,
 		}
 
-		t.Run(fmt.Sprintf("r=%d", tt.r), func(t *testing.T) {
+		t.Run(fmt.Sprintf("r=%s", tt.r), func(t *testing.T) {
 			ret, err := r.Register(tt.r)
 			if ret != tt.ret {
 				t.Errorf("got %v, expected %v", ret, tt.ret)
@@ -86,7 +86,7 @@ func TestSetRegister(t *testing.T) {
 	for _, tt := range setRegistersTests {
 		r := Registers{}
 
-		t.Run(fmt.Sprintf("r=%d val=%d", tt.r, tt.val), func(t *testing.T) {
+		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
 			r.SetRegister(tt.r, tt.val)
 
 			ret, err := r.Register(tt.r)
@@ -124,7 +124,7 @@ var incrementTests = []struct {
 
 func TestIncrement(t *testing.T) {
 	for _, tt := range incrementTests {
-		t.Run(fmt.Sprintf("r=%d val=%d", tt.r, tt.val), func(t *testing.T) {
+		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
 			r := Registers{}
 			r.SetRegister(tt.r, tt.val)
 
@@ -163,7 +163,7 @@ var decrementTests = []struct {
 
 func TestDecrement(t *testing.T) {
 	for _, tt := range decrementTests {
-		t.Run(fmt.Sprintf("r=%d val=%d", tt.r, tt.val), func(t *testing.T) {
+		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
 			r := Registers{}
 			r.SetRegister(tt.r, tt.val)
 
@@ -173,6 +173,46 @@ func TestDecrement(t *testing.T) {
 
 			if out, _ := r.Register(tt.r); out != tt.out {
 				t.Errorf("got %v, expected %v", out, tt.out)
+			}
+		})
+	}
+}
+
+var getComponentsTests = []struct {
+	r  Register
+	hi uint8
+	lo uint8
+}{
+	{AF, 1, 1},
+	{BC, 255, 255},
+	{DE, 120, 208},
+	{HL, 217, 3},
+}
+
+func TestGetComponents(t *testing.T) {
+	r := Registers{
+		af: RegisterAF{
+			a: 1,
+			f: 1,
+		},
+		bc: Register16{
+			hi: 255,
+			lo: 255,
+		},
+		de: Register16{
+			hi: 120,
+			lo: 208,
+		},
+		hl: Register16{
+			hi: 217,
+			lo: 3,
+		},
+	}
+
+	for _, tt := range getComponentsTests {
+		t.Run(fmt.Sprintf("r=%s", tt.r), func(t *testing.T) {
+			if hi, lo, _ := r.GetComponents(tt.r); hi != tt.hi || lo != tt.lo {
+				t.Errorf("got %d %d, expected %d %d", hi, lo, tt.hi, tt.lo)
 			}
 		})
 	}

@@ -186,6 +186,15 @@ func (cpu *CPU) PutHLIntoSP() {
 	cpu.r.SetRegister(registers.SP, val)
 }
 
+func (cpu *CPU) PushRROntoStack(from registers.Register) {
+	sp, _ := cpu.r.Register(registers.SP)
+	hi, lo, _ := cpu.r.GetComponents(from)
+	cpu.m.SetByte(sp-1, hi)
+	cpu.m.SetByte(sp-2, lo)
+	cpu.r.Decrement(registers.SP)
+	cpu.r.Decrement(registers.SP)
+}
+
 // PutSPIntoNNAddress puts the value stored in register SP into the memory
 // locations referenced by the program counter and [PC+1].
 func (cpu *CPU) PutSPIntoNNAddress() {
