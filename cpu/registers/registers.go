@@ -79,8 +79,8 @@ type Registers struct {
 	pc uint16
 }
 
-// NewRegisters returns a new Registers struct.
-func NewRegisters() *Registers {
+// New returns a new Registers struct.
+func New() *Registers {
 	f := flags.New()
 	af := RegisterAF{
 		f: f,
@@ -273,6 +273,16 @@ func (r *Registers) DecrementBy(rr Register, by uint8) (err error) {
 // It returns an error, if encountered.
 func (r *Registers) Decrement(rr Register) (err error) {
 	return r.DecrementBy(rr, 1)
+}
+
+// Accumulator returns a pointer to the accumulator register.
+func (r *Registers) Accumulator() *uint8 {
+	return &r.af.a
+}
+
+// Flags returns a pointer to the flags register.
+func (r *Registers) Flags() *flags.Flags {
+	return r.af.f
 }
 
 // GetFlag returns flag's value and an error, if encountered.

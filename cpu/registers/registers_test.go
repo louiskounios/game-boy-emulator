@@ -3,7 +3,27 @@ package registers
 import (
 	"fmt"
 	"testing"
+
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
+
+func TestAccumulator(t *testing.T) {
+	r := New()
+	acc := r.Accumulator()
+	*acc = 255
+	if r.af.a != 255 {
+		t.Errorf("got %d, expected %d", r.af.a, 255)
+	}
+}
+
+func TestFlags(t *testing.T) {
+	r := New()
+	f := r.Flags()
+	*f = flags.Flags(255)
+	if *r.af.f != flags.Flags(255) {
+		t.Errorf("got %d, expected %d", *r.af.f, 255)
+	}
+}
 
 var registersTests = []struct {
 	r   Register
@@ -86,7 +106,7 @@ var setRegistersTests = []struct {
 
 func TestSetRegister(t *testing.T) {
 	for _, tt := range setRegistersTests {
-		r := NewRegisters()
+		r := New()
 
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
 			r.SetRegister(tt.r, tt.val)
@@ -129,7 +149,7 @@ var incrementByTests = []struct {
 func TestIncrementBy(t *testing.T) {
 	for _, tt := range incrementByTests {
 		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
-			r := NewRegisters()
+			r := New()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.IncrementBy(tt.r, tt.by); err != tt.err {
@@ -169,7 +189,7 @@ var incrementTests = []struct {
 func TestIncrement(t *testing.T) {
 	for _, tt := range incrementTests {
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
-			r := NewRegisters()
+			r := New()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.Increment(tt.r); err != tt.err {
@@ -210,7 +230,7 @@ var decrementByTests = []struct {
 func TestDecrementBy(t *testing.T) {
 	for _, tt := range decrementByTests {
 		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
-			r := NewRegisters()
+			r := New()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.DecrementBy(tt.r, tt.by); err != tt.err {
@@ -250,7 +270,7 @@ var decrementTests = []struct {
 func TestDecrement(t *testing.T) {
 	for _, tt := range decrementTests {
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
-			r := NewRegisters()
+			r := New()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.Decrement(tt.r); err != tt.err {

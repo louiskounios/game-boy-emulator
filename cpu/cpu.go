@@ -18,7 +18,7 @@ type CPU struct {
 func NewCPU() *CPU {
 	c := &clock{}
 	i := &instruction{}
-	r := registers.NewRegisters()
+	r := registers.New()
 	m := &mmu.Memory{}
 
 	return &CPU{
