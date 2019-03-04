@@ -32,7 +32,7 @@ func TestRegister(t *testing.T) {
 		r := Registers{
 			af: RegisterAF{
 				a: 1,
-				f: 1,
+				f: newFlags(1),
 			},
 			bc: Register16{
 				hi: 255,
@@ -86,7 +86,7 @@ var setRegistersTests = []struct {
 
 func TestSetRegister(t *testing.T) {
 	for _, tt := range setRegistersTests {
-		r := Registers{}
+		r := NewRegisters()
 
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
 			r.SetRegister(tt.r, tt.val)
@@ -129,7 +129,7 @@ var incrementByTests = []struct {
 func TestIncrementBy(t *testing.T) {
 	for _, tt := range incrementByTests {
 		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
-			r := Registers{}
+			r := NewRegisters()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.IncrementBy(tt.r, tt.by); err != tt.err {
@@ -169,7 +169,7 @@ var incrementTests = []struct {
 func TestIncrement(t *testing.T) {
 	for _, tt := range incrementTests {
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
-			r := Registers{}
+			r := NewRegisters()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.Increment(tt.r); err != tt.err {
@@ -210,7 +210,7 @@ var decrementByTests = []struct {
 func TestDecrementBy(t *testing.T) {
 	for _, tt := range decrementByTests {
 		t.Run(fmt.Sprintf("r=%s val=%d by=%d", tt.r, tt.val, tt.by), func(t *testing.T) {
-			r := Registers{}
+			r := NewRegisters()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.DecrementBy(tt.r, tt.by); err != tt.err {
@@ -250,7 +250,7 @@ var decrementTests = []struct {
 func TestDecrement(t *testing.T) {
 	for _, tt := range decrementTests {
 		t.Run(fmt.Sprintf("r=%s val=%d", tt.r, tt.val), func(t *testing.T) {
-			r := Registers{}
+			r := NewRegisters()
 			r.SetRegister(tt.r, tt.val)
 
 			if err := r.Decrement(tt.r); err != tt.err {
@@ -279,7 +279,7 @@ func TestGetComponents(t *testing.T) {
 	r := Registers{
 		af: RegisterAF{
 			a: 1,
-			f: 1,
+			f: newFlags(1),
 		},
 		bc: Register16{
 			hi: 255,

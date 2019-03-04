@@ -3,6 +3,8 @@ package registers
 import (
 	"fmt"
 	"testing"
+
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
 var register16EqualsTests = []struct {
@@ -10,12 +12,12 @@ var register16EqualsTests = []struct {
 	r2  CompoundRegisterHandler
 	out bool
 }{
-	{&Register16{0, 0}, &Register16{0, 0}, true},
-	{&Register16{0, 1}, &Register16{0, 0}, false},
-	{&Register16{128, 0}, &Register16{0, 128}, false},
-	{&Register16{255, 0}, &Register16{255, 0}, true},
-	{&Register16{255, 255}, &Register16{255, 255}, true},
-	{&Register16{255, 255}, &RegisterAF{255, 255}, false},
+	{newRegister16(0, 0), newRegister16(0, 0), true},
+	{newRegister16(0, 1), newRegister16(0, 0), false},
+	{newRegister16(128, 0), newRegister16(0, 128), false},
+	{newRegister16(255, 0), newRegister16(255, 0), true},
+	{newRegister16(255, 255), newRegister16(255, 255), true},
+	{newRegister16(255, 255), newRegisterAF(255, 255), false},
 }
 
 func TestRegister16Equals(t *testing.T) {
@@ -29,12 +31,12 @@ func TestRegister16Equals(t *testing.T) {
 }
 
 var register16HiTests = []struct {
-	r   Register16
+	r   *Register16
 	out uint8
 }{
-	{Register16{0, 0}, 0},
-	{Register16{120, 0}, 120},
-	{Register16{255, 0}, 255},
+	{newRegister16(0, 0), 0},
+	{newRegister16(120, 0), 120},
+	{newRegister16(255, 0), 255},
 }
 
 func TestRegister16Hi(t *testing.T) {
@@ -51,9 +53,9 @@ var register16SetHiTests = []struct {
 	val uint8
 	out Register16
 }{
-	{0, Register16{0, 0}},
-	{120, Register16{120, 0}},
-	{255, Register16{255, 0}},
+	{0, *newRegister16(0, 0)},
+	{120, *newRegister16(120, 0)},
+	{255, *newRegister16(255, 0)},
 }
 
 func TestRegister16SetHi(t *testing.T) {
@@ -71,12 +73,12 @@ func TestRegister16SetHi(t *testing.T) {
 }
 
 var register16LoTests = []struct {
-	r   Register16
+	r   *Register16
 	out uint8
 }{
-	{Register16{0, 0}, 0},
-	{Register16{0, 120}, 120},
-	{Register16{0, 255}, 255},
+	{newRegister16(0, 0), 0},
+	{newRegister16(0, 120), 120},
+	{newRegister16(0, 255), 255},
 }
 
 func TestRegister16Lo(t *testing.T) {
@@ -91,11 +93,11 @@ func TestRegister16Lo(t *testing.T) {
 
 var register16SetLoTests = []struct {
 	val uint8
-	out Register16
+	out *Register16
 }{
-	{0, Register16{0, 0}},
-	{120, Register16{0, 120}},
-	{255, Register16{0, 255}},
+	{0, newRegister16(0, 0)},
+	{120, newRegister16(0, 120)},
+	{255, newRegister16(0, 255)},
 }
 
 func TestRegister16SetLo(t *testing.T) {
@@ -113,14 +115,14 @@ func TestRegister16SetLo(t *testing.T) {
 }
 
 var register16WordTests = []struct {
-	in  Register16
+	in  *Register16
 	out uint16
 }{
-	{Register16{1, 1}, 257},
-	{Register16{128, 1}, 32769},
-	{Register16{128, 0}, 32768},
-	{Register16{128, 128}, 32896},
-	{Register16{255, 255}, 65535},
+	{newRegister16(1, 1), 257},
+	{newRegister16(128, 1), 32769},
+	{newRegister16(128, 0), 32768},
+	{newRegister16(128, 128), 32896},
+	{newRegister16(255, 255), 65535},
 }
 
 func TestRegister16Word(t *testing.T) {
@@ -135,13 +137,13 @@ func TestRegister16Word(t *testing.T) {
 
 var register16SetWordTests = []struct {
 	in  uint16
-	out Register16
+	out *Register16
 }{
-	{257, Register16{1, 1}},
-	{32769, Register16{128, 1}},
-	{32768, Register16{128, 0}},
-	{32896, Register16{128, 128}},
-	{65535, Register16{255, 255}},
+	{257, newRegister16(1, 1)},
+	{32769, newRegister16(128, 1)},
+	{32768, newRegister16(128, 0)},
+	{32896, newRegister16(128, 128)},
+	{65535, newRegister16(255, 255)},
 }
 
 func TestRegister16SetWord(t *testing.T) {
@@ -256,17 +258,17 @@ var registerAFEqualsTests = []struct {
 	r2  CompoundRegisterHandler
 	out bool
 }{
-	{&RegisterAF{0, 0}, &RegisterAF{0, 0}, true},
-	{&RegisterAF{0, 1}, &RegisterAF{0, 0}, false},
-	{&RegisterAF{128, 0}, &RegisterAF{0, 128}, false},
-	{&RegisterAF{255, 0}, &RegisterAF{255, 0}, true},
-	{&RegisterAF{255, 255}, &RegisterAF{255, 255}, true},
-	{&RegisterAF{255, 255}, &Register16{255, 255}, false},
+	{newRegisterAF(0, 0), newRegisterAF(0, 0), true},
+	{newRegisterAF(0, 1), newRegisterAF(0, 0), false},
+	{newRegisterAF(128, 0), newRegisterAF(0, 128), false},
+	{newRegisterAF(255, 0), newRegisterAF(255, 0), true},
+	{newRegisterAF(255, 255), newRegisterAF(255, 255), true},
+	{newRegisterAF(255, 255), newRegister16(255, 255), false},
 }
 
 func TestRegisterAFEquals(t *testing.T) {
 	for _, tt := range registerAFEqualsTests {
-		t.Run(fmt.Sprintf("r1=%v r2=%v", tt.r1, tt.r2), func(t *testing.T) {
+		t.Run(fmt.Sprintf("r1=%s r2=%s", tt.r1, tt.r2), func(t *testing.T) {
 			if out := tt.r1.Equals(tt.r1) && tt.r1.Equals(tt.r1) && tt.r1.Equals(tt.r2) && tt.r2.Equals(tt.r1); out != tt.out {
 				t.Errorf("got %t, expected %t", out, tt.out)
 			}
@@ -275,12 +277,12 @@ func TestRegisterAFEquals(t *testing.T) {
 }
 
 var registerAFHiTests = []struct {
-	r   RegisterAF
+	r   *RegisterAF
 	out uint8
 }{
-	{RegisterAF{0, 0}, 0},
-	{RegisterAF{120, 0}, 120},
-	{RegisterAF{255, 0}, 255},
+	{newRegisterAF(0, 0), 0},
+	{newRegisterAF(120, 0), 120},
+	{newRegisterAF(255, 0), 255},
 }
 
 func TestRegisterAFHi(t *testing.T) {
@@ -295,16 +297,16 @@ func TestRegisterAFHi(t *testing.T) {
 
 var registerAFSetHiTests = []struct {
 	val uint8
-	out RegisterAF
+	out *RegisterAF
 }{
-	{0, RegisterAF{0, 0}},
-	{120, RegisterAF{120, 0}},
-	{255, RegisterAF{255, 0}},
+	{0, newRegisterAF(0, 0)},
+	{120, newRegisterAF(120, 0)},
+	{255, newRegisterAF(255, 0)},
 }
 
 func TestRegisterAFSetHi(t *testing.T) {
 	for _, tt := range registerAFSetHiTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("val=%d", tt.val), func(t *testing.T) {
 			r.SetHi(tt.val)
@@ -317,12 +319,12 @@ func TestRegisterAFSetHi(t *testing.T) {
 }
 
 var registerAFLoTests = []struct {
-	r   RegisterAF
+	r   *RegisterAF
 	out uint8
 }{
-	{RegisterAF{0, 0}, 0},
-	{RegisterAF{0, 120}, 120},
-	{RegisterAF{0, 255}, 255},
+	{newRegisterAF(0, 0), 0},
+	{newRegisterAF(0, 120), 120},
+	{newRegisterAF(0, 255), 255},
 }
 
 func TestRegisterAFLo(t *testing.T) {
@@ -337,16 +339,16 @@ func TestRegisterAFLo(t *testing.T) {
 
 var registerAFSetLoTests = []struct {
 	val uint8
-	out RegisterAF
+	out *RegisterAF
 }{
-	{0, RegisterAF{0, 0}},
-	{120, RegisterAF{0, 120}},
-	{255, RegisterAF{0, 255}},
+	{0, newRegisterAF(0, 0)},
+	{120, newRegisterAF(0, 120)},
+	{255, newRegisterAF(0, 255)},
 }
 
 func TestRegisterAFSetLo(t *testing.T) {
 	for _, tt := range registerAFSetLoTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("val=%d", tt.val), func(t *testing.T) {
 			r.SetLo(tt.val)
@@ -359,14 +361,14 @@ func TestRegisterAFSetLo(t *testing.T) {
 }
 
 var registerAFWordTests = []struct {
-	in  RegisterAF
+	in  *RegisterAF
 	out uint16
 }{
-	{RegisterAF{1, 1}, 257},
-	{RegisterAF{128, 1}, 32769},
-	{RegisterAF{128, 0}, 32768},
-	{RegisterAF{128, 128}, 32896},
-	{RegisterAF{255, 255}, 65535},
+	{newRegisterAF(1, 1), 257},
+	{newRegisterAF(128, 1), 32769},
+	{newRegisterAF(128, 0), 32768},
+	{newRegisterAF(128, 128), 32896},
+	{newRegisterAF(255, 255), 65535},
 }
 
 func TestRegisterAFWord(t *testing.T) {
@@ -381,18 +383,18 @@ func TestRegisterAFWord(t *testing.T) {
 
 var registerAFSetWordTests = []struct {
 	in  uint16
-	out RegisterAF
+	out *RegisterAF
 }{
-	{257, RegisterAF{1, 1}},
-	{32769, RegisterAF{128, 1}},
-	{32768, RegisterAF{128, 0}},
-	{32896, RegisterAF{128, 128}},
-	{65535, RegisterAF{255, 255}},
+	{257, newRegisterAF(1, 1)},
+	{32769, newRegisterAF(128, 1)},
+	{32768, newRegisterAF(128, 0)},
+	{32896, newRegisterAF(128, 128)},
+	{65535, newRegisterAF(255, 255)},
 }
 
 func TestRegisterAFSetWord(t *testing.T) {
 	for _, tt := range registerAFSetWordTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			if r.SetWord(tt.in); !r.Equals(tt.out) {
@@ -414,7 +416,7 @@ var registerAFIncrementByTests = []struct {
 
 func TestRegisterAFIncrementBy(t *testing.T) {
 	for _, tt := range registerAFIncrementByTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
 			r.SetHi(tt.in)
@@ -437,7 +439,7 @@ var registerAFIncrementTests = []struct {
 
 func TestRegisterAFIncrement(t *testing.T) {
 	for _, tt := range registerAFIncrementTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			r.SetHi(tt.in)
@@ -462,7 +464,7 @@ var registerAFDecrementByTests = []struct {
 
 func TestRegisterAFDecrementBy(t *testing.T) {
 	for _, tt := range registerAFDecrementByTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("in=%d by=%d", tt.in, tt.by), func(t *testing.T) {
 			r.SetHi(tt.in)
@@ -485,7 +487,7 @@ var registerAFDecrementTests = []struct {
 
 func TestRegisterAFDecrement(t *testing.T) {
 	for _, tt := range registerAFDecrementTests {
-		r := RegisterAF{}
+		r := newRegisterAF(0, 0)
 
 		t.Run(fmt.Sprintf("in=%d", tt.in), func(t *testing.T) {
 			r.SetHi(tt.in)
@@ -495,4 +497,19 @@ func TestRegisterAFDecrement(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newRegister16(hi, lo uint8) *Register16 {
+	return &Register16{hi, lo}
+}
+
+func newRegisterAF(acc, fval uint8) *RegisterAF {
+	f := newFlags(fval)
+	return &RegisterAF{acc, f}
+}
+
+func newFlags(val uint8) *flags.Flags {
+	f := flags.New()
+	*f = flags.Flags(val)
+	return f
 }

@@ -81,7 +81,7 @@ type Registers struct {
 
 // NewRegisters returns a new Registers struct.
 func NewRegisters() *Registers {
-	f := flags.Flags(0)
+	f := flags.New()
 	af := RegisterAF{
 		f: f,
 	}
@@ -118,7 +118,7 @@ func (r *Registers) Register(rr Register) (ret uint16, err error) {
 	case A:
 		ret = uint16(r.af.a)
 	case F:
-		ret = uint16(r.af.f)
+		ret = uint16(*r.af.f)
 	case B:
 		ret = uint16(r.bc.hi)
 	case C:
@@ -157,7 +157,7 @@ func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
 	case A:
 		r.af.a = uint8(val)
 	case F:
-		r.af.f = flags.Flags(val)
+		*r.af.f = flags.Flags(val)
 	case B:
 		r.bc.hi = uint8(val)
 	case C:

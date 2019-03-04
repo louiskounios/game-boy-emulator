@@ -111,8 +111,14 @@ func (r Register16) String() string {
 // RegisterAF is a type representing the AF compound register which is made up
 // of a uint8 variable and an 8-bit flags register.
 type RegisterAF struct {
-	a uint8       // Most significant.
-	f flags.Flags // Least significant.
+	a uint8        // Most significant.
+	f *flags.Flags // Least significant.
+}
+
+// NewAFRegister returns a pointer to an AF register.
+func NewAFRegister() *RegisterAF {
+	f := flags.New()
+	return &RegisterAF{f: f}
 }
 
 // Equals compares receiver r and parameter i for equality by comparing their
@@ -120,9 +126,9 @@ type RegisterAF struct {
 func (r RegisterAF) Equals(i interface{}) bool {
 	switch t := i.(type) {
 	case RegisterAF:
-		return (r.a == t.a) && (r.f == t.f)
+		return (r.a == t.a) && (*r.f == *t.f)
 	case *RegisterAF:
-		return (r.a == t.a) && (r.f == t.f)
+		return (r.a == t.a) && (*r.f == *t.f)
 	default:
 		return false
 	}
@@ -142,12 +148,12 @@ func (r *RegisterAF) SetHi(val uint8) {
 // Lo returns a copy of the 8 least significant bits in the 16-bit compound
 // register.
 func (r *RegisterAF) Lo() uint8 {
-	return uint8(r.f)
+	return uint8(*r.f)
 }
 
 // SetLo sets r.f to be equal to val.
 func (r *RegisterAF) SetLo(val uint8) {
-	r.f = flags.Flags(val)
+	*r.f = flags.Flags(val)
 }
 
 // Word combines the two fields in r and returns a uint16 variable.
@@ -155,7 +161,7 @@ func (r *RegisterAF) SetLo(val uint8) {
 // The 8 bits from r.a and r.f are used as the most and least significant bits
 // respectively.
 func (r RegisterAF) Word() uint16 {
-	return uint16(r.a)<<8 | uint16(r.f)
+	return uint16(r.a)<<8 | uint16(*r.f)
 }
 
 // SetWord updates the two fields in r so that the uint16 variable that is the
@@ -167,7 +173,7 @@ func (r *RegisterAF) SetWord(val uint16) {
 	// Shift the 8 most significant bits to the right, then cast to 8-bit uint.
 	r.a = uint8(val >> 8)
 	// Cast to flags.Flags. The 8 most significant bits will be truncated.
-	r.f = flags.Flags(val)
+	*r.f = flags.Flags(val)
 }
 
 // IncrementBy increments the 8-bit register A by `by`.

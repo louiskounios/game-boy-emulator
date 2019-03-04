@@ -242,6 +242,46 @@ func (cpu *CPU) PutNNIntoRR(to registers.Register) {
 }
 
 /**
+ * 8-bit arithmetic / logical operations
+ */
+
+// func (cpu *CPU) Adc(r registers.Register) {
+// 	accVal, _ := cpu.r.Register(registers.A)
+// 	rVal, _ := cpu.r.Register(r)
+
+// 	var carryOut bool
+// 	var halfCarryOut bool
+// 	var result uint16
+// 	if s, _ := cpu.r.IsFlagSet(flags.C); s {
+// 		carryOut = (accVal >= 0xFF-rVal)
+// 		result = uint16(accVal + rVal + 1)
+// 		cpu.r.SetRegister(registers.A, result)
+// 	} else {
+// 		carryOut = (accVal > 0xFF-rVal)
+// 		result = uint16(accVal + rVal)
+// 		cpu.r.SetRegister(registers.A, result)
+// 	}
+
+// 	carryIns := result ^ accVal ^ rVal
+// 	halfCarryOut = (carryIns>>4)&1 == 1
+
+// 	cpu.r.PutFlag(flags.C, carryOut)
+// 	cpu.r.PutFlag(flags.H, halfCarryOut)
+// 	cpu.r.ResetFlag(flags.N)
+// 	cpu.r.PutFlag(flags.Z, result == 0)
+// }
+
+// func (cpu *CPU) Sbc(r registers.Register) {
+// 	cpu.r.ToggleFlag(flags.C)
+// 	// Do something.
+// 	cpu.r.ToggleFlag(flags.C)
+// }
+
+// func (cpu *CPU) AddRToA(r registers.Register) {
+
+// }
+
+/**
  * Common operations
  */
 
@@ -293,6 +333,15 @@ func (cpu *CPU) offsetAddressFromC() uint16 {
 
 func (cpu *CPU) offsetAddress(address uint16) uint16 {
 	return address + 0xFF00
+}
+
+func (cpu *CPU) addRegisterToRegister(src registers.Register, dst registers.Register) {
+	val1, _ := cpu.r.Register(src)
+	val2, _ := cpu.r.Register(dst)
+	res := uint16(val1 + val2)
+	cpu.r.SetRegister(dst, res)
+
+	cpu.r.ResetFlag(flags.N)
 }
 
 // Adds uint8 s to uint16 u, with s being treated as a signed variable.
