@@ -1,57 +1,46 @@
-package flags
+package flags_test
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
 var getTests = []struct {
-	val  Flags
-	flag Flag
+	val  flags.Flags
+	flag flags.Flag
 	ret  uint8
 }{
-	{16, C, 1},
-	{16, Z, 0},
-	{32, H, 1},
-	{32, N, 0},
-	{64, N, 1},
-	{64, H, 0},
-	{128, Z, 1},
-	{128, C, 0},
-}
-
-func TestGet(t *testing.T) {
-	for _, tt := range getTests {
-		f := New()
-		*f = tt.val
-
-		t.Run(fmt.Sprintf("val=%08b flag=%s", tt.val, tt.flag), func(t *testing.T) {
-			if out, _ := f.Get(tt.flag); out != tt.ret {
-				t.Errorf("got %d, expected %d", out, tt.ret)
-			}
-		})
-	}
+	{16, flags.C, 1},
+	{16, flags.Z, 0},
+	{32, flags.H, 1},
+	{32, flags.N, 0},
+	{64, flags.N, 1},
+	{64, flags.H, 0},
+	{128, flags.Z, 1},
+	{128, flags.C, 0},
 }
 
 var isSetTests = []struct {
-	flags *Flags
-	flag  Flag
+	flags *flags.Flags
+	flag  flags.Flag
 	ret   bool
 }{
-	{newFlags(16), C, true},
-	{newFlags(16), Z, false},
-	{newFlags(32), H, true},
-	{newFlags(32), N, false},
-	{newFlags(64), N, true},
-	{newFlags(64), H, false},
-	{newFlags(128), Z, true},
-	{newFlags(128), C, false},
+	{newFlags(16), flags.C, true},
+	{newFlags(16), flags.Z, false},
+	{newFlags(32), flags.H, true},
+	{newFlags(32), flags.N, false},
+	{newFlags(64), flags.N, true},
+	{newFlags(64), flags.H, false},
+	{newFlags(128), flags.Z, true},
+	{newFlags(128), flags.C, false},
 }
 
 func TestIsSet(t *testing.T) {
 	for _, tt := range isSetTests {
 		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
-			if out, _ := tt.flags.IsSet(tt.flag); out != tt.ret {
+			if out, _ := tt.flags.IsSet(uint8(tt.flag)); out != tt.ret {
 				t.Errorf("got %t, expected %t", out, tt.ret)
 			}
 		})
@@ -59,34 +48,34 @@ func TestIsSet(t *testing.T) {
 }
 
 var putTests = []struct {
-	flags *Flags
-	flag  Flag
+	flags *flags.Flags
+	flag  flags.Flag
 	set   bool
 }{
-	{newFlags(0), C, true},
-	{newFlags(0), C, false},
-	{newFlags(16), C, true},
-	{newFlags(16), C, false},
-	{newFlags(0), H, true},
-	{newFlags(0), H, false},
-	{newFlags(32), H, true},
-	{newFlags(32), H, false},
-	{newFlags(0), N, true},
-	{newFlags(0), N, false},
-	{newFlags(64), N, true},
-	{newFlags(64), N, false},
-	{newFlags(0), Z, true},
-	{newFlags(0), Z, false},
-	{newFlags(128), Z, true},
-	{newFlags(128), Z, false},
+	{newFlags(0), flags.C, true},
+	{newFlags(0), flags.C, false},
+	{newFlags(16), flags.C, true},
+	{newFlags(16), flags.C, false},
+	{newFlags(0), flags.H, true},
+	{newFlags(0), flags.H, false},
+	{newFlags(32), flags.H, true},
+	{newFlags(32), flags.H, false},
+	{newFlags(0), flags.N, true},
+	{newFlags(0), flags.N, false},
+	{newFlags(64), flags.N, true},
+	{newFlags(64), flags.N, false},
+	{newFlags(0), flags.Z, true},
+	{newFlags(0), flags.Z, false},
+	{newFlags(128), flags.Z, true},
+	{newFlags(128), flags.Z, false},
 }
 
 func TestPut(t *testing.T) {
 	for _, tt := range putTests {
 		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
-			tt.flags.Put(tt.flag, tt.set)
+			tt.flags.Put(uint8(tt.flag), tt.set)
 
-			if out, _ := tt.flags.IsSet(tt.flag); out != tt.set {
+			if out, _ := tt.flags.IsSet(uint8(tt.flag)); out != tt.set {
 				t.Errorf("got %t, expected %t", out, false)
 			}
 		})
@@ -94,25 +83,25 @@ func TestPut(t *testing.T) {
 }
 
 var resetTests = []struct {
-	flags *Flags
-	flag  Flag
+	flags *flags.Flags
+	flag  flags.Flag
 }{
-	{newFlags(16), C},
-	{newFlags(16), Z},
-	{newFlags(32), H},
-	{newFlags(32), N},
-	{newFlags(64), N},
-	{newFlags(64), H},
-	{newFlags(128), Z},
-	{newFlags(128), C},
+	{newFlags(16), flags.C},
+	{newFlags(16), flags.Z},
+	{newFlags(32), flags.H},
+	{newFlags(32), flags.N},
+	{newFlags(64), flags.N},
+	{newFlags(64), flags.H},
+	{newFlags(128), flags.Z},
+	{newFlags(128), flags.C},
 }
 
 func TestReset(t *testing.T) {
 	for _, tt := range resetTests {
 		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
-			tt.flags.Reset(tt.flag)
+			tt.flags.Reset(uint8(tt.flag))
 
-			if out, _ := tt.flags.IsSet(tt.flag); out {
+			if out, _ := tt.flags.IsSet(uint8(tt.flag)); out {
 				t.Errorf("got %t, expected %t", out, false)
 			}
 		})
@@ -120,25 +109,25 @@ func TestReset(t *testing.T) {
 }
 
 var setTests = []struct {
-	flags *Flags
-	flag  Flag
+	flags *flags.Flags
+	flag  flags.Flag
 }{
-	{newFlags(16), C},
-	{newFlags(16), Z},
-	{newFlags(32), H},
-	{newFlags(32), N},
-	{newFlags(64), N},
-	{newFlags(64), H},
-	{newFlags(128), Z},
-	{newFlags(128), C},
+	{newFlags(16), flags.C},
+	{newFlags(16), flags.Z},
+	{newFlags(32), flags.H},
+	{newFlags(32), flags.N},
+	{newFlags(64), flags.N},
+	{newFlags(64), flags.H},
+	{newFlags(128), flags.Z},
+	{newFlags(128), flags.C},
 }
 
 func TestSet(t *testing.T) {
 	for _, tt := range setTests {
 		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
-			tt.flags.Set(tt.flag)
+			tt.flags.Set(uint8(tt.flag))
 
-			if out, _ := tt.flags.IsSet(tt.flag); !out {
+			if out, _ := tt.flags.IsSet(uint8(tt.flag)); !out {
 				t.Errorf("got %t, expected %t", out, false)
 			}
 		})
@@ -146,34 +135,34 @@ func TestSet(t *testing.T) {
 }
 
 var toggleTests = []struct {
-	flags *Flags
-	flag  Flag
+	flags *flags.Flags
+	flag  flags.Flag
 	isSet bool
 }{
-	{newFlags(16), C, false},
-	{newFlags(16), Z, true},
-	{newFlags(32), H, false},
-	{newFlags(32), N, true},
-	{newFlags(64), N, false},
-	{newFlags(64), H, true},
-	{newFlags(128), Z, false},
-	{newFlags(128), C, true},
+	{newFlags(16), flags.C, false},
+	{newFlags(16), flags.Z, true},
+	{newFlags(32), flags.H, false},
+	{newFlags(32), flags.N, true},
+	{newFlags(64), flags.N, false},
+	{newFlags(64), flags.H, true},
+	{newFlags(128), flags.Z, false},
+	{newFlags(128), flags.C, true},
 }
 
 func TestToggle(t *testing.T) {
 	for _, tt := range toggleTests {
 		t.Run(fmt.Sprintf("flags=[%s] flag=%s", tt.flags, tt.flag), func(t *testing.T) {
-			tt.flags.Toggle(tt.flag)
+			tt.flags.Toggle(uint8(tt.flag))
 
-			if out, _ := tt.flags.IsSet(tt.flag); out != tt.isSet {
+			if out, _ := tt.flags.IsSet(uint8(tt.flag)); out != tt.isSet {
 				t.Errorf("got %t, expected %t", out, tt.isSet)
 			}
 		})
 	}
 }
 
-func newFlags(val Flags) *Flags {
-	f := New()
+func newFlags(val flags.Flags) *flags.Flags {
+	f := flags.New()
 	*f = val
 	return f
 }

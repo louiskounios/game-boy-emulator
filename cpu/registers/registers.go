@@ -8,9 +8,8 @@ import (
 )
 
 var (
-	errUnknownRegister = errors.New("unknown register")
-	errFlagsIncrement  = errors.New("flags register cannot be incremented")
-	errFlagsDecrement  = errors.New("flags register cannot be decremented")
+	errUnknownAuxiliaryRegister = errors.New("unknown auxiliary register")
+	errUnknownPairedRegister    = errors.New("unknown paired register")
 )
 
 // Register is the type for our individual registers enumeration.
@@ -26,7 +25,6 @@ const (
 	E
 	H
 	L
-	AF
 	BC
 	DE
 	HL
@@ -53,270 +51,214 @@ func (register Register) String() string {
 	case 7:
 		return "L"
 	case 8:
-		return "AF"
-	case 9:
 		return "BC"
-	case 10:
+	case 9:
 		return "DE"
-	case 11:
+	case 10:
 		return "HL"
-	case 12:
+	case 11:
 		return "SP"
-	case 13:
+	case 12:
 		return "PC"
 	default:
 		return "?"
 	}
 }
 
-// Registers consists of six 16-bit registers.
+// FlagBearer is the interface that wraps the functionality that must be
+// provided by an implementation of an 8-bit flags register.
+type FlagBearer interface {
+	IsSet(uint8) (bool, error)
+	Put(uint8, bool) error
+	Reset(uint8) error
+	Set(uint8) error
+	Toggle(uint8) error
+	Value() uint8
+	SetValue(uint8)
+}
+
+// Registers consists of the accumulator and flags registers, three paired
+// registers consisting of two 8-bit sub-registers, a stack pointer,
+// and a program counter.
 type Registers struct {
-	af RegisterAF
-	bc Register16
-	de Register16
-	hl Register16
-	sp uint16
-	pc uint16
+	a  *uint8
+	f  FlagBearer
+	bc RegisterPairer
+	de RegisterPairer
+	hl RegisterPairer
+	sp *uint16
+	pc *uint16
 }
 
-// New returns a new Registers struct.
+// New returns new registers.
 func New() *Registers {
-	f := flags.New()
-	af := RegisterAF{
-		f: f,
+	return &Registers{
+		new(uint8),
+		flags.New(),
+		NewRegisterPair(),
+		NewRegisterPair(),
+		NewRegisterPair(),
+		new(uint16),
+		new(uint16),
 	}
-
-	return &Registers{af: af}
 }
 
-// GetComponents returns a copy of the hi and lo 8-bit components of register rr,
-// and an errUnknownRegister error, if encountered.
-func (r Registers) GetComponents(rr Register) (hi, lo uint8, err error) {
-	var crh CompoundRegisterHandler
-
-	switch rr {
-	case AF:
-		crh = &r.af
-	case BC:
-		crh = &r.bc
-	case DE:
-		crh = &r.de
-	case HL:
-		crh = &r.hl
-	default:
-		err = errUnknownRegister
-	}
-
-	hi, lo = crh.Hi(), crh.Lo()
-	return hi, lo, err
+// AF returns the combined 16-bit value of the accumulator and flags registers.
+func (r *Registers) AF() uint16 {
+	return uint16(*r.a)<<8 | uint16(r.f.Value())
 }
 
-// Register returns a copy of register rr, and an errUnknownRegister error,
-// if encountered.
-func (r *Registers) Register(rr Register) (ret uint16, err error) {
+// SetAF sets the 16-bit value when combining the accumulator and flags
+// registers to be equal to the provided value.
+func (r *Registers) SetAF(val uint16) {
+	*r.a = uint8(val >> 8)
+	r.f.SetValue(uint8(val))
+}
+
+// Accumulator returns a pointer to the accumulator register.
+func (r *Registers) Accumulator() *uint8 {
+	return r.a
+}
+
+// Auxiliary returns a pointer to the requested auxiliary register, and an
+// error if encountered.
+func (r *Registers) Auxiliary(rr Register) (ret *uint8, err error) {
 	switch rr {
 	case A:
-		ret = uint16(r.af.a)
-	case F:
-		ret = uint16(*r.af.f)
+		ret = r.Accumulator()
 	case B:
-		ret = uint16(r.bc.hi)
+		ret = r.bc.Hi()
 	case C:
-		ret = uint16(r.bc.lo)
+		ret = r.bc.Lo()
 	case D:
-		ret = uint16(r.de.hi)
+		ret = r.de.Hi()
 	case E:
-		ret = uint16(r.de.lo)
+		ret = r.de.Lo()
 	case H:
-		ret = uint16(r.hl.hi)
+		ret = r.hl.Hi()
 	case L:
-		ret = uint16(r.hl.lo)
-	case AF:
-		ret = r.af.Word()
-	case BC:
-		ret = r.bc.Word()
-	case DE:
-		ret = r.de.Word()
-	case HL:
-		ret = r.hl.Word()
-	case SP:
-		ret = r.sp
-	case PC:
-		ret = r.pc
+		ret = r.hl.Lo()
 	default:
-		err = errUnknownRegister
+		err = errUnknownAuxiliaryRegister
 	}
 
 	return ret, err
 }
 
-// SetRegister sets register rr to value val by modifying r in place.
-// It returns an errUnknownRegister error, if encountered.
-func (r *Registers) SetRegister(rr Register, val uint16) (err error) {
+func (r *Registers) getRegisterPairer(rr Register) (RegisterPairer, error) {
+	var rp RegisterPairer
+
 	switch rr {
-	case A:
-		r.af.a = uint8(val)
-	case F:
-		*r.af.f = flags.Flags(val)
-	case B:
-		r.bc.hi = uint8(val)
-	case C:
-		r.bc.lo = uint8(val)
-	case D:
-		r.de.hi = uint8(val)
-	case E:
-		r.de.lo = uint8(val)
-	case H:
-		r.hl.hi = uint8(val)
-	case L:
-		r.hl.lo = uint8(val)
-	case AF:
-		r.af.SetWord(val)
 	case BC:
-		r.bc.SetWord(val)
+		rp = r.bc
 	case DE:
-		r.de.SetWord(val)
+		rp = r.de
 	case HL:
-		r.hl.SetWord(val)
-	case SP:
-		r.sp = val
-	case PC:
-		r.pc = val
+		rp = r.hl
 	default:
-		err = errUnknownRegister
+		return nil, errUnknownPairedRegister
 	}
 
-	return err
+	return rp, nil
 }
 
-// IncrementBy increments register rr by `by`. r is modified in place.
-// It returns an error, if encountered.
-func (r *Registers) IncrementBy(rr Register, by uint8) (err error) {
-	switch rr {
-	case A:
-		r.af.IncrementBy(uint16(by))
-	case B:
-		r.bc.hi += by
-	case C:
-		r.bc.lo += by
-	case D:
-		r.de.hi += by
-	case E:
-		r.de.lo += by
-	case H:
-		r.hl.hi += by
-	case L:
-		r.hl.lo += by
-	case BC:
-		r.bc.IncrementBy(uint16(by))
-	case DE:
-		r.de.IncrementBy(uint16(by))
-	case HL:
-		r.hl.IncrementBy(uint16(by))
-	case SP:
-		r.sp += uint16(by)
-	case PC:
-		r.pc += uint16(by)
-	case F, AF:
-		err = errFlagsIncrement
-	default:
-		err = errUnknownRegister
+// Paired returns the 16-bit value of a paired register.
+func (r *Registers) Paired(rr Register) (uint16, error) {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return 0, err
 	}
-
-	return err
+	return rp.Word(), nil
 }
 
-// Increment increments register rr by 1. r is modified in place.
-// It returns an error, if encountered.
-func (r *Registers) Increment(rr Register) (err error) {
-	return r.IncrementBy(rr, 1)
-}
-
-// DecrementBy decrements register rr by by `by`. r is modified in place.
-// It returns an error, if encountered.
-func (r *Registers) DecrementBy(rr Register, by uint8) (err error) {
-	switch rr {
-	case A:
-		r.af.DecrementBy(uint16(by))
-	case B:
-		r.bc.hi -= by
-	case C:
-		r.bc.lo -= by
-	case D:
-		r.de.hi -= by
-	case E:
-		r.de.lo -= by
-	case H:
-		r.hl.hi -= by
-	case L:
-		r.hl.lo -= by
-	case BC:
-		r.bc.DecrementBy(uint16(by))
-	case DE:
-		r.de.DecrementBy(uint16(by))
-	case HL:
-		r.hl.DecrementBy(uint16(by))
-	case SP:
-		r.sp -= uint16(by)
-	case PC:
-		r.pc -= uint16(by)
-	case F, AF:
-		err = errFlagsDecrement
-	default:
-		err = errUnknownRegister
+// DecrementPairedBy decrements paired register rr by the provided amount.
+func (r *Registers) DecrementPairedBy(rr Register, amount uint16) error {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return err
 	}
-
-	return err
+	rp.DecrementBy(amount)
+	return nil
 }
 
-// Decrement decrements register rr by by 1. r is modified in place.
-// It returns an error, if encountered.
-func (r *Registers) Decrement(rr Register) (err error) {
-	return r.DecrementBy(rr, 1)
+// DecrementPaired decrements paired register rr by 1.
+func (r *Registers) DecrementPaired(rr Register) error {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return err
+	}
+	rp.Decrement()
+	return nil
 }
 
-// Accumulator returns a pointer to the accumulator register.
-func (r *Registers) Accumulator() *uint8 {
-	return &r.af.a
+// IncrementPairedBy increments paired register rr by the provided amount.
+func (r *Registers) IncrementPairedBy(rr Register, amount uint16) error {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return err
+	}
+	rp.IncrementBy(amount)
+	return nil
 }
 
-// Flags returns a pointer to the flags register.
-func (r *Registers) Flags() *flags.Flags {
-	return r.af.f
+// IncrementPaired increments paired register rr by 1.
+func (r *Registers) IncrementPaired(rr Register) error {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return err
+	}
+	rp.Increment()
+	return nil
 }
 
-// GetFlag returns flag's value and an error, if encountered.
-func (r Registers) GetFlag(flag flags.Flag) (uint8, error) {
-	return r.af.f.Get(flag)
+// SetPaired sets the 16-bit value of a paired register to be equal to the
+// provided value.
+func (r *Registers) SetPaired(rr Register, val uint16) error {
+	rp, err := r.getRegisterPairer(rr)
+	if err != nil {
+		return err
+	}
+	rp.SetWord(val)
+	return nil
+}
+
+// StackPointer returns a pointer to the stack pointer.
+func (r *Registers) StackPointer() *uint16 {
+	return r.sp
+}
+
+// ProgramCounter returns a pointer to the program counter.
+func (r *Registers) ProgramCounter() *uint16 {
+	return r.pc
 }
 
 // IsFlagSet returns whether flag is set or not and an error, if encountered.
-func (r Registers) IsFlagSet(flag flags.Flag) (bool, error) {
-	return r.af.f.IsSet(flag)
+func (r *Registers) IsFlagSet(flag uint8) (bool, error) {
+	return r.f.IsSet(flag)
 }
 
 // PutFlag sets flag if set is true, and resets it otherwise. An error is
 // returned, if encountered.
-func (r *Registers) PutFlag(flag flags.Flag, set bool) error {
-	return r.af.f.Put(flag, set)
+func (r *Registers) PutFlag(flag uint8, set bool) error {
+	return r.f.Put(flag, set)
 }
 
 // ResetFlag resets flag, and returns an error, if encountered.
-func (r *Registers) ResetFlag(flag flags.Flag) error {
-	return r.af.f.Reset(flag)
+func (r *Registers) ResetFlag(flag uint8) error {
+	return r.f.Reset(flag)
 }
 
 // SetFlag sets flag, and returns an error, if encountered.
-func (r *Registers) SetFlag(flag flags.Flag) error {
-	return r.af.f.Set(flag)
+func (r *Registers) SetFlag(flag uint8) error {
+	return r.f.Set(flag)
 }
 
 // ToggleFlag toggles flag, and returns an error, if encountered.
-func (r *Registers) ToggleFlag(flag flags.Flag) error {
-	return r.af.f.Toggle(flag)
+func (r *Registers) ToggleFlag(flag uint8) error {
+	return r.f.Toggle(flag)
 }
 
-func (r Registers) String() string {
-	s := "[AF=%s | BC=%s | DE=%s | HL=%s | SP=0x%04X | PC=0x%04X]"
-	return fmt.Sprintf(s, r.af, r.bc, r.de, r.hl, r.sp, r.pc)
+func (r *Registers) String() string {
+	s := "[acc=0x%02X | flags=%s | BC=%s | DE=%s | HL=%s | SP=0x%04X | PC=0x%04X]"
+	return fmt.Sprintf(s, *r.a, r.f, r.bc, r.de, r.hl, *r.sp, *r.pc)
 }
