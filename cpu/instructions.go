@@ -315,4 +315,28 @@ var instructions = instructionSet{
 
 	// Register (A) - Memory[PC]
 	0xFE: &instruction{0xFE, 2, "CP d8", func(cpu *CPU) { cpu.CompareN() }},
+
+	// Register (A, B, C, D, E, H, L) <- Register (A, B, C, D, E, H, L) + 1
+	0x3C: &instruction{0x3C, 1, "INC A", func(cpu *CPU) { cpu.IncrementA() }},
+	0x04: &instruction{0x04, 1, "INC B", func(cpu *CPU) { cpu.IncrementR(registers.B) }},
+	0x0C: &instruction{0x0C, 1, "INC C", func(cpu *CPU) { cpu.IncrementR(registers.C) }},
+	0x14: &instruction{0x14, 1, "INC D", func(cpu *CPU) { cpu.IncrementR(registers.D) }},
+	0x1C: &instruction{0x1C, 1, "INC E", func(cpu *CPU) { cpu.IncrementR(registers.E) }},
+	0x24: &instruction{0x24, 1, "INC H", func(cpu *CPU) { cpu.IncrementR(registers.H) }},
+	0x2C: &instruction{0x2C, 1, "INC L", func(cpu *CPU) { cpu.IncrementR(registers.L) }},
+
+	// Memory[HL] <- Memory[HL] + 1
+	0x34: &instruction{0x34, 3, "INC (HL)", func(cpu *CPU) { cpu.IncrementHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) <- Register (A, B, C, D, E, H, L) - 1
+	0x3D: &instruction{0x3D, 1, "DEC A", func(cpu *CPU) { cpu.DecrementA() }},
+	0x05: &instruction{0x05, 1, "DEC B", func(cpu *CPU) { cpu.DecrementR(registers.B) }},
+	0x0D: &instruction{0x0D, 1, "DEC C", func(cpu *CPU) { cpu.DecrementR(registers.C) }},
+	0x15: &instruction{0x15, 1, "DEC D", func(cpu *CPU) { cpu.DecrementR(registers.D) }},
+	0x1D: &instruction{0x1D, 1, "DEC E", func(cpu *CPU) { cpu.DecrementR(registers.E) }},
+	0x25: &instruction{0x25, 1, "DEC H", func(cpu *CPU) { cpu.DecrementR(registers.H) }},
+	0x2D: &instruction{0x2D, 1, "DEC L", func(cpu *CPU) { cpu.DecrementR(registers.L) }},
+
+	// Memory[HL] <- Memory[HL] - 1
+	0x35: &instruction{0x35, 3, "DEC (HL)", func(cpu *CPU) { cpu.DecrementHLDereference() }},
 }

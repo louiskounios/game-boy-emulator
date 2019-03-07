@@ -584,6 +584,71 @@ func (cpu *CPU) CompareHLDereference() {
 	cpu.compare8Helper(cpu.m.Byte(hl))
 }
 
+func (cpu *CPU) increment8(x, by uint8) (result uint8) {
+	result = x + by
+	carryIns := result ^ x ^ by
+	halfCarryOut := (carryIns>>4)&1 == 1
+
+	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
+	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
+}
+
+func (cpu *CPU) increment8Helper(x *uint8) {
+	*x = cpu.increment8(*x, 1)
+	cpu.r.ResetFlag(uint8(flags.N))
+}
+
+// IncrementA increments the accumulator register by 1, and updates the flags.
+func (cpu *CPU) IncrementA() {
+	acc := cpu.r.Accumulator()
+	cpu.increment8Helper(acc)
+}
+
+// IncrementR increments the provided register by 1, and updates the flags.
+func (cpu *CPU) IncrementR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.increment8Helper(a)
+}
+
+// IncrementHLDereference increments the memory contents referenced by register
+// HL by 1, and updates the flags.
+func (cpu *CPU) IncrementHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.increment8Helper(&val)
+	cpu.m.SetByte(hl, val)
+}
+
+func (cpu *CPU) decrement8Helper(x *uint8) {
+	by := uint8(1)
+	by = ^by + 1
+	*x = cpu.increment8(*x, by)
+	cpu.r.SetFlag(uint8(flags.N))
+}
+
+// DecrementA decrements the accumulator register by 1, and updates the flags.
+func (cpu *CPU) DecrementA() {
+	acc := cpu.r.Accumulator()
+	cpu.decrement8Helper(acc)
+}
+
+// DecrementR decrements the provided register by 1, and updates the flags.
+func (cpu *CPU) DecrementR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.decrement8Helper(a)
+}
+
+// DecrementHLDereference decrements the memory contents referenced by register
+// HL by 1, and updates the flags.
+func (cpu *CPU) DecrementHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.decrement8Helper(&val)
+	cpu.m.SetByte(hl, val)
+}
+
 /**
  * Common operations
  */
