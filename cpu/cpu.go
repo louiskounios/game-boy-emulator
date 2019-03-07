@@ -266,6 +266,7 @@ func (cpu *CPU) PutNNIntoRR(to registers.Register) {
  * 8-bit arithmetic / logical operations
  */
 
+// Adapted from: https://stackoverflow.com/a/8037485/1283818
 func (cpu *CPU) addByte(addend uint8, useCarry bool) {
 	var (
 		carryOut     bool
@@ -348,11 +349,19 @@ func (cpu *CPU) AdcHLDereference() {
 	cpu.addHelper(cpu.m.Byte(hl), true, cpu.r.ResetFlag)
 }
 
+// Adapted from: https://stackoverflow.com/a/8037485/1283818
 func (cpu *CPU) subHelper(val uint8, useCarry bool, f func(uint8) error) {
-	cpu.r.ToggleFlag(uint8(flags.C))
-	defer cpu.r.ToggleFlag(uint8(flags.C))
+	// a - b - c = a + ^b + 1 - c = a + ^b + !c
+	// a - b = a + ^b + 1
+	val = ^val
+	if useCarry {
+		cpu.r.ToggleFlag(uint8(flags.C))
+		defer cpu.r.ToggleFlag(uint8(flags.C))
+	} else {
+		val++
+	}
 
-	cpu.addHelper(^val, useCarry, f)
+	cpu.addHelper(val, useCarry, f)
 }
 
 // SubA subtracts the accumulator from itself and updates the flags.
