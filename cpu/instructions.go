@@ -300,4 +300,19 @@ var instructions = instructionSet{
 
 	// Register (A) <- Register (A) | Memory[PC]
 	0xF6: &instruction{0xF6, 2, "OR d8", func(cpu *CPU) { cpu.OrN() }},
+
+	// Register (A) - Register (A, B, C, D, E, H, L)
+	0xBF: &instruction{0xBF, 1, "CP A", func(cpu *CPU) { cpu.CompareA() }},
+	0xB8: &instruction{0xB8, 1, "CP B", func(cpu *CPU) { cpu.CompareR(registers.B) }},
+	0xB9: &instruction{0xB9, 1, "CP C", func(cpu *CPU) { cpu.CompareR(registers.C) }},
+	0xBA: &instruction{0xBA, 1, "CP D", func(cpu *CPU) { cpu.CompareR(registers.D) }},
+	0xBB: &instruction{0xBB, 1, "CP E", func(cpu *CPU) { cpu.CompareR(registers.E) }},
+	0xBC: &instruction{0xBC, 1, "CP H", func(cpu *CPU) { cpu.CompareR(registers.H) }},
+	0xBD: &instruction{0xBD, 1, "CP L", func(cpu *CPU) { cpu.CompareR(registers.L) }},
+
+	// Register (A) - Memory[HL]
+	0xBE: &instruction{0xBE, 2, "CP (HL)", func(cpu *CPU) { cpu.CompareHLDereference() }},
+
+	// Register (A) - Memory[PC]
+	0xFE: &instruction{0xFE, 2, "CP d8", func(cpu *CPU) { cpu.CompareN() }},
 }
