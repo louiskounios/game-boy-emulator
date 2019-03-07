@@ -410,6 +410,11 @@ func (cpu *CPU) SbcHLDereference() {
 	cpu.sub8Helper(cpu.m.Byte(hl), true, cpu.r.SetFlag)
 }
 
+func (cpu *CPU) bitwise8Helper(y uint8, f func(uint8, uint8) uint8) {
+	acc := cpu.r.Accumulator()
+	*acc = f(*acc, y)
+}
+
 func (cpu *CPU) and8(x, y uint8) (result uint8) {
 	result = x & y
 
@@ -419,6 +424,77 @@ func (cpu *CPU) and8(x, y uint8) (result uint8) {
 	cpu.r.PutFlag(uint8(flags.Z), result == 0)
 
 	return result
+}
+
+// AndA performs bitwise AND between the contents of the accumulator and itself,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) AndA() {
+	acc := cpu.r.Accumulator()
+	cpu.bitwise8Helper(*acc, cpu.and8)
+}
+
+// AndR performs bitwise AND between the contents of the accumulator and the
+// provided register, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) AndR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.bitwise8Helper(*a, cpu.and8)
+}
+
+// AndN performs bitwise AND between the contents of the accumulator and the
+// immediate byte, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) AndN() {
+	cpu.bitwise8Helper(cpu.immediateByte(), cpu.and8)
+}
+
+// AndHLDereference performs bitwise AND between the contents of the accumulator
+// and the value stored in the memory location referenced by register HL,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) AndHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.and8)
+}
+
+func (cpu *CPU) xor8(x, y uint8) (result uint8) {
+	result = x ^ y
+
+	cpu.r.ResetFlag(uint8(flags.C))
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
+}
+
+// XorA performs bitwise XOR between the contents of the accumulator and itself,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) XorA() {
+	acc := cpu.r.Accumulator()
+	cpu.bitwise8Helper(*acc, cpu.xor8)
+}
+
+// XorR performs bitwise XOR between the contents of the accumulator and the
+// provided register, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) XorR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.bitwise8Helper(*a, cpu.xor8)
+}
+
+// XorN performs bitwise XOR between the contents of the accumulator and the
+// immediate byte, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) XorN() {
+	cpu.bitwise8Helper(cpu.immediateByte(), cpu.xor8)
+}
+
+// XorHLDereference performs bitwise XOR between the contents of the accumulator
+// and the value stored in the memory location referenced by register HL,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) XorHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.xor8)
 }
 
 func (cpu *CPU) or8(x, y uint8) (result uint8) {
@@ -432,15 +508,34 @@ func (cpu *CPU) or8(x, y uint8) (result uint8) {
 	return result
 }
 
-func (cpu *CPU) xor8(x, y uint8) (result uint8) {
-	result = x ^ y
+// OrA performs bitwise OR between the contents of the accumulator and itself,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) OrA() {
+	acc := cpu.r.Accumulator()
+	cpu.bitwise8Helper(*acc, cpu.or8)
+}
 
-	cpu.r.ResetFlag(uint8(flags.C))
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+// OrR performs bitwise OR between the contents of the accumulator and the
+// provided register, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) OrR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.bitwise8Helper(*a, cpu.or8)
+}
 
-	return result
+// OrN performs bitwise OR between the contents of the accumulator and the
+// immediate byte, storing the result in the accumulator. It also updates the
+// flags.
+func (cpu *CPU) OrN() {
+	cpu.bitwise8Helper(cpu.immediateByte(), cpu.or8)
+}
+
+// OrHLDereference performs bitwise OR between the contents of the accumulator
+// and the value stored in the memory location referenced by register HL,
+// storing the result in the accumulator. It also updates the flags.
+func (cpu *CPU) OrHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.or8)
 }
 
 /**

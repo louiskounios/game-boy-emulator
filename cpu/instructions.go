@@ -255,4 +255,49 @@ var instructions = instructionSet{
 
 	// Register (A) <- Register (A) - Memory[PC] - Flag (C)
 	0xDE: &instruction{0xDE, 2, "SBC A,d8", func(cpu *CPU) { cpu.SbcN() }},
+
+	// Register (A) <- Register (A) & Register (A, B, C, D, E, H, L)
+	0xA7: &instruction{0xA7, 1, "AND A", func(cpu *CPU) { cpu.AndA() }},
+	0xA0: &instruction{0xA0, 1, "AND B", func(cpu *CPU) { cpu.AndR(registers.B) }},
+	0xA1: &instruction{0xA1, 1, "AND C", func(cpu *CPU) { cpu.AndR(registers.C) }},
+	0xA2: &instruction{0xA2, 1, "AND D", func(cpu *CPU) { cpu.AndR(registers.D) }},
+	0xA3: &instruction{0xA3, 1, "AND E", func(cpu *CPU) { cpu.AndR(registers.E) }},
+	0xA4: &instruction{0xA4, 1, "AND H", func(cpu *CPU) { cpu.AndR(registers.H) }},
+	0xA5: &instruction{0xA5, 1, "AND L", func(cpu *CPU) { cpu.AndR(registers.L) }},
+
+	// Register (A) <- Register (A) & Memory[HL]
+	0xA6: &instruction{0xA6, 2, "AND (HL)", func(cpu *CPU) { cpu.AndHLDereference() }},
+
+	// Register (A) <- Register (A) & Memory[PC]
+	0xE6: &instruction{0xE6, 2, "AND d8", func(cpu *CPU) { cpu.AndN() }},
+
+	// Register (A) <- Register (A) ^ Register (A, B, C, D, E, H, L)
+	0xAF: &instruction{0xAF, 1, "XOR A", func(cpu *CPU) { cpu.XorA() }},
+	0xA8: &instruction{0xA8, 1, "XOR B", func(cpu *CPU) { cpu.XorR(registers.B) }},
+	0xA9: &instruction{0xA9, 1, "XOR C", func(cpu *CPU) { cpu.XorR(registers.C) }},
+	0xAA: &instruction{0xAA, 1, "XOR D", func(cpu *CPU) { cpu.XorR(registers.D) }},
+	0xAB: &instruction{0xAB, 1, "XOR E", func(cpu *CPU) { cpu.XorR(registers.E) }},
+	0xAC: &instruction{0xAC, 1, "XOR H", func(cpu *CPU) { cpu.XorR(registers.H) }},
+	0xAD: &instruction{0xAD, 1, "XOR L", func(cpu *CPU) { cpu.XorR(registers.L) }},
+
+	// Register (A) <- Register (A) ^ Memory[HL]
+	0xAE: &instruction{0xAE, 2, "XOR (HL)", func(cpu *CPU) { cpu.XorHLDereference() }},
+
+	// Register (A) <- Register (A) ^ Memory[PC]
+	0xEE: &instruction{0xEE, 2, "XOR d8", func(cpu *CPU) { cpu.XorN() }},
+
+	// Register (A) <- Register (A) | Register (A, B, C, D, E, H, L)
+	0xB7: &instruction{0xB7, 1, "OR A", func(cpu *CPU) { cpu.OrA() }},
+	0xB0: &instruction{0xB0, 1, "OR B", func(cpu *CPU) { cpu.OrR(registers.B) }},
+	0xB1: &instruction{0xB1, 1, "OR C", func(cpu *CPU) { cpu.OrR(registers.C) }},
+	0xB2: &instruction{0xB2, 1, "OR D", func(cpu *CPU) { cpu.OrR(registers.D) }},
+	0xB3: &instruction{0xB3, 1, "OR E", func(cpu *CPU) { cpu.OrR(registers.E) }},
+	0xB4: &instruction{0xB4, 1, "OR H", func(cpu *CPU) { cpu.OrR(registers.H) }},
+	0xB5: &instruction{0xB5, 1, "OR L", func(cpu *CPU) { cpu.OrR(registers.L) }},
+
+	// Register (A) <- Register (A) | Memory[HL]
+	0xB6: &instruction{0xB6, 2, "OR (HL)", func(cpu *CPU) { cpu.OrHLDereference() }},
+
+	// Register (A) <- Register (A) | Memory[PC]
+	0xF6: &instruction{0xF6, 2, "OR d8", func(cpu *CPU) { cpu.OrN() }},
 }
