@@ -267,78 +267,76 @@ func (cpu *CPU) PutNNIntoRR(to registers.Register) {
  */
 
 // Adapted from: https://stackoverflow.com/a/8037485/1283818
-func (cpu *CPU) addByte(addend uint8, useCarry bool) {
+func (cpu *CPU) add8(x, y uint8, useCarry bool) (result uint8) {
 	var (
 		carryOut     bool
 		halfCarryOut bool
-		result       uint8
 	)
 
-	acc := cpu.r.Accumulator()
-	oldAcc := *acc
-
 	if s, _ := cpu.r.IsFlagSet(uint8(flags.C)); s && useCarry {
-		carryOut = (oldAcc >= 0xFF-addend)
-		result = oldAcc + addend + 1
+		carryOut = (x >= 0xFF-y)
+		result = x + y + 1
 	} else {
-		carryOut = (oldAcc > 0xFF-addend)
-		result = oldAcc + addend
+		carryOut = (x > 0xFF-y)
+		result = x + y
 	}
 
-	*acc = result
-	carryIns := result ^ oldAcc ^ addend
+	carryIns := result ^ x ^ y
 	halfCarryOut = (carryIns>>4)&1 == 1
 
 	cpu.r.PutFlag(uint8(flags.C), carryOut)
 	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
 	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
 }
 
-func (cpu *CPU) addHelper(val uint8, useCarry bool, f func(uint8) error) {
-	cpu.addByte(val, useCarry)
+func (cpu *CPU) add8Helper(y uint8, useCarry bool, f func(uint8) error) {
+	acc := cpu.r.Accumulator()
+	*acc = cpu.add8(*acc, y, useCarry)
 	f(uint8(flags.N))
 }
 
 // AddA adds the accumulator to itself and updates the flags.
 func (cpu *CPU) AddA() {
-	cpu.addHelper(*cpu.r.Accumulator(), false, cpu.r.ResetFlag)
+	cpu.add8Helper(*cpu.r.Accumulator(), false, cpu.r.ResetFlag)
 }
 
 // AddR adds the provided register to the accumulator and updates the flags.
 func (cpu *CPU) AddR(r registers.Register) {
 	a, _ := cpu.r.Auxiliary(r)
-	cpu.addHelper(*a, false, cpu.r.ResetFlag)
+	cpu.add8Helper(*a, false, cpu.r.ResetFlag)
 }
 
 // AddN adds the immediate byte to the accumulator and updates the flags.
 func (cpu *CPU) AddN() {
-	cpu.addHelper(cpu.immediateByte(), false, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.immediateByte(), false, cpu.r.ResetFlag)
 }
 
 // AddHLDereference adds the value stored in the memory location referenced by
 // register HL to the accumulator and updates the flags.
 func (cpu *CPU) AddHLDereference() {
 	hl, _ := cpu.r.Paired(registers.HL)
-	cpu.addHelper(cpu.m.Byte(hl), false, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.m.Byte(hl), false, cpu.r.ResetFlag)
 }
 
 // AdcA adds the accumulator and the contents of the carry flag to the
 // accumulator itself and updates the flags.
 func (cpu *CPU) AdcA() {
-	cpu.addHelper(*cpu.r.Accumulator(), true, cpu.r.ResetFlag)
+	cpu.add8Helper(*cpu.r.Accumulator(), true, cpu.r.ResetFlag)
 }
 
 // AdcR adds the provided register and the contents of the carry flag to the
 // accumulator and updates the flags.
 func (cpu *CPU) AdcR(r registers.Register) {
 	a, _ := cpu.r.Auxiliary(r)
-	cpu.addHelper(*a, true, cpu.r.ResetFlag)
+	cpu.add8Helper(*a, true, cpu.r.ResetFlag)
 }
 
 // AdcN adds the immediate byte and the contents of the carry flag to the
 // accumulator and updates the flags.
 func (cpu *CPU) AdcN() {
-	cpu.addHelper(cpu.immediateByte(), true, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.immediateByte(), true, cpu.r.ResetFlag)
 }
 
 // AdcHLDereference adds the value stored in the memory location referenced by
@@ -346,70 +344,103 @@ func (cpu *CPU) AdcN() {
 // the flags.
 func (cpu *CPU) AdcHLDereference() {
 	hl, _ := cpu.r.Paired(registers.HL)
-	cpu.addHelper(cpu.m.Byte(hl), true, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.m.Byte(hl), true, cpu.r.ResetFlag)
 }
 
 // Adapted from: https://stackoverflow.com/a/8037485/1283818
-func (cpu *CPU) subHelper(val uint8, useCarry bool, f func(uint8) error) {
+func (cpu *CPU) sub8Helper(y uint8, useCarry bool, f func(uint8) error) {
 	// a - b - c = a + ^b + 1 - c = a + ^b + !c
 	// a - b = a + ^b + 1
-	val = ^val
+	y = ^y
 	if useCarry {
 		cpu.r.ToggleFlag(uint8(flags.C))
 		defer cpu.r.ToggleFlag(uint8(flags.C))
 	} else {
-		val++
+		y++
 	}
 
-	cpu.addHelper(val, useCarry, f)
+	cpu.add8Helper(y, useCarry, f)
 }
 
 // SubA subtracts the accumulator from itself and updates the flags.
 func (cpu *CPU) SubA() {
-	cpu.subHelper(*cpu.r.Accumulator(), false, cpu.r.SetFlag)
+	cpu.sub8Helper(*cpu.r.Accumulator(), false, cpu.r.SetFlag)
 }
 
 // SubR subtracts the provided register from the accumulator and updates the
 // flags.
 func (cpu *CPU) SubR(r registers.Register) {
 	a, _ := cpu.r.Auxiliary(r)
-	cpu.subHelper(*a, false, cpu.r.SetFlag)
+	cpu.sub8Helper(*a, false, cpu.r.SetFlag)
 }
 
 // SubN subtracts the immediate byte from the accumulator and updates the flags.
 func (cpu *CPU) SubN() {
-	cpu.subHelper(cpu.immediateByte(), false, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.immediateByte(), false, cpu.r.SetFlag)
 }
 
 // SubHLDereference subtracts the value stored in the memory location referenced
 // by register HL from the accumulator and updates the flags.
 func (cpu *CPU) SubHLDereference() {
 	hl, _ := cpu.r.Paired(registers.HL)
-	cpu.subHelper(cpu.m.Byte(hl), false, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.m.Byte(hl), false, cpu.r.SetFlag)
 }
 
 // SbcA subtracts the accumulator from itself and updates the flags.
 func (cpu *CPU) SbcA() {
-	cpu.subHelper(*cpu.r.Accumulator(), true, cpu.r.SetFlag)
+	cpu.sub8Helper(*cpu.r.Accumulator(), true, cpu.r.SetFlag)
 }
 
 // SbcR subtracts the provided register from the accumulator and updates the
 // flags.
 func (cpu *CPU) SbcR(r registers.Register) {
 	a, _ := cpu.r.Auxiliary(r)
-	cpu.subHelper(*a, true, cpu.r.SetFlag)
+	cpu.sub8Helper(*a, true, cpu.r.SetFlag)
 }
 
 // SbcN subtracts the immediate byte from the accumulator and updates the flags.
 func (cpu *CPU) SbcN() {
-	cpu.subHelper(cpu.immediateByte(), true, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.immediateByte(), true, cpu.r.SetFlag)
 }
 
 // SbcHLDereference subtracts the value stored in the memory location referenced
 // by register HL from the accumulator and updates the flags.
 func (cpu *CPU) SbcHLDereference() {
 	hl, _ := cpu.r.Paired(registers.HL)
-	cpu.subHelper(cpu.m.Byte(hl), true, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.m.Byte(hl), true, cpu.r.SetFlag)
+}
+
+func (cpu *CPU) and8(x, y uint8) (result uint8) {
+	result = x & y
+
+	cpu.r.ResetFlag(uint8(flags.C))
+	cpu.r.SetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
+}
+
+func (cpu *CPU) or8(x, y uint8) (result uint8) {
+	result = x | y
+
+	cpu.r.ResetFlag(uint8(flags.C))
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
+}
+
+func (cpu *CPU) xor8(x, y uint8) (result uint8) {
+	result = x ^ y
+
+	cpu.r.ResetFlag(uint8(flags.C))
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+
+	return result
 }
 
 /**
