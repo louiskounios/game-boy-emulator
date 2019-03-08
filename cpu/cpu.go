@@ -650,6 +650,71 @@ func (cpu *CPU) DecrementHLDereference() {
 }
 
 /**
+ * 16-bit arithmetic / logical operations
+ */
+
+// Adapted from: https://stackoverflow.com/a/8037485/1283818
+func (cpu *CPU) add16(x, y uint16) (result uint16) {
+	var (
+		carryOut     bool
+		halfCarryOut bool
+	)
+
+	carryOut = (x > 0xFFFF-y)
+	result = x + y
+
+	carryIns := result ^ x ^ y
+	halfCarryOut = (carryIns>>12)&1 == 1
+
+	cpu.r.PutFlag(uint8(flags.C), carryOut)
+	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
+	cpu.r.ResetFlag(uint8(flags.N))
+
+	return result
+}
+
+func (cpu *CPU) add16Helper(y uint16) {
+	hl, _ := cpu.r.Paired(registers.HL)
+	cpu.r.SetPaired(registers.HL, cpu.add16(hl, y))
+}
+
+// AddRR adds the provided register to register HL, storing the result in
+// register HL, and updates the flags.
+func (cpu *CPU) AddRR(rr registers.Register) {
+	pr, _ := cpu.r.Paired(rr)
+	cpu.add16Helper(pr)
+}
+
+// AddSP adds the stack pointer register to register HL, storing the result in
+// register HL, and updates the flags.
+func (cpu *CPU) AddSP() {
+	sp := cpu.r.StackPointer()
+	cpu.add16Helper(*sp)
+}
+
+// IncrementRR increments the provided register by 1.
+func (cpu *CPU) IncrementRR(rr registers.Register) {
+	cpu.r.IncrementPaired(rr)
+}
+
+// IncrementSP increments the stack pointer register by 1.
+func (cpu *CPU) IncrementSP() {
+	sp := cpu.r.StackPointer()
+	*sp = *sp + 1
+}
+
+// DecrementRR decrements the provided register by 1.
+func (cpu *CPU) DecrementRR(rr registers.Register) {
+	cpu.r.DecrementPaired(rr)
+}
+
+// DecrementSP decrements the stack pointer register by 1.
+func (cpu *CPU) DecrementSP() {
+	sp := cpu.r.StackPointer()
+	*sp = *sp - 1
+}
+
+/**
  * Common operations
  */
 

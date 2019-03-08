@@ -339,4 +339,26 @@ var instructions = instructionSet{
 
 	// Memory[HL] <- Memory[HL] - 1
 	0x35: &instruction{0x35, 3, "DEC (HL)", func(cpu *CPU) { cpu.DecrementHLDereference() }},
+
+	/**
+	 * 16-bit arithmetic / logical operations
+	 */
+
+	// Register (HL) <- Register (HL) + Register (BC, DE, HL, SP)
+	0x09: &instruction{0x09, 2, "ADD HL,BC", func(cpu *CPU) { cpu.AddRR(registers.BC) }},
+	0x19: &instruction{0x19, 2, "ADD HL,DE", func(cpu *CPU) { cpu.AddRR(registers.DE) }},
+	0x29: &instruction{0x29, 2, "ADD HL,HL", func(cpu *CPU) { cpu.AddRR(registers.HL) }},
+	0x39: &instruction{0x39, 2, "ADD HL,SP", func(cpu *CPU) { cpu.AddSP() }},
+
+	// Register (BC, DE, HL, SP) <- Register (BC, DE, HL, SP) + 1
+	0x03: &instruction{0x03, 2, "INC BC", func(cpu *CPU) { cpu.IncrementRR(registers.BC) }},
+	0x13: &instruction{0x13, 2, "INC DE", func(cpu *CPU) { cpu.IncrementRR(registers.DE) }},
+	0x23: &instruction{0x23, 2, "INC HL", func(cpu *CPU) { cpu.IncrementRR(registers.HL) }},
+	0x33: &instruction{0x33, 2, "INC SP", func(cpu *CPU) { cpu.IncrementSP() }},
+
+	// Register (BC, DE, HL, SP) <- Register (BC, DE, HL, SP) - 1
+	0x0B: &instruction{0x0B, 2, "DEC BC", func(cpu *CPU) { cpu.DecrementRR(registers.BC) }},
+	0x1B: &instruction{0x1B, 2, "DEC DE", func(cpu *CPU) { cpu.DecrementRR(registers.DE) }},
+	0x2B: &instruction{0x2B, 2, "DEC HL", func(cpu *CPU) { cpu.DecrementRR(registers.HL) }},
+	0x3B: &instruction{0x3B, 2, "DEC SP", func(cpu *CPU) { cpu.DecrementSP() }},
 }
