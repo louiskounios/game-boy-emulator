@@ -361,4 +361,7 @@ var instructions = instructionSet{
 	0x1B: &instruction{0x1B, 2, "DEC DE", func(cpu *CPU) { cpu.DecrementRR(registers.DE) }},
 	0x2B: &instruction{0x2B, 2, "DEC HL", func(cpu *CPU) { cpu.DecrementRR(registers.HL) }},
 	0x3B: &instruction{0x3B, 2, "DEC SP", func(cpu *CPU) { cpu.DecrementSP() }},
+
+	// Register (SP) <- Register (SP) + Memory[PC]
+	0xE8: &instruction{0xE8, 4, "ADD SP,r8", func(cpu *CPU) { cpu.AddOffsetImmediateToSP() }},
 }

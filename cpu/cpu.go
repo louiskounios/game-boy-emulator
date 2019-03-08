@@ -219,17 +219,12 @@ func (cpu *CPU) PutSPIntoNNAddress() {
 
 // PutOffsetSPIntoHL puts the value resulting from the addition [SP+Memory[PC]]
 // into register HL, with the value fetched from memory being treated as a
-// signed integer.
-// Flags are updated accordingly.
+// signed integer. Flags are updated accordingly.
 func (cpu *CPU) PutOffsetSPIntoHL() {
 	sp := cpu.r.StackPointer()
 	pc := cpu.r.ProgramCounter()
-	offset, carry, hcarry := addSignedUnsigned(cpu.m.Byte(*pc), *sp)
+	offset := cpu.add16S8(*sp, cpu.m.Byte(*pc))
 	cpu.r.SetPaired(registers.HL, offset)
-	cpu.r.PutFlag(uint8(flags.C), carry)
-	cpu.r.PutFlag(uint8(flags.H), hcarry)
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.ResetFlag(uint8(flags.Z))
 }
 
 // Pops a word from the stack, then increments the stack pointer by 2.
@@ -714,6 +709,33 @@ func (cpu *CPU) DecrementSP() {
 	*sp = *sp - 1
 }
 
+// Adds uint8 to uint16 with uint8 being treated as a signed number in the range
+// [-128, 127].
+func (cpu *CPU) add16S8(x uint16, y uint8) (result uint16) {
+	var yy uint16
+	if y > 127 {
+		// Adding this to x is equal to subtracting ^y+1 from x.
+		yy = ^uint16(^y+1) + 1
+	} else {
+		yy = uint16(y)
+	}
+
+	result = cpu.add16(x, yy)
+	cpu.r.ResetFlag(uint8(flags.Z))
+
+	return result
+}
+
+// AddOffsetImmediateToSP adds the immediate byte to the stack pointer register,
+// with the immediate byte being treated as a signed integer in the range
+// [-128, 127]. Flags are updated accordingly.
+func (cpu *CPU) AddOffsetImmediateToSP() {
+	sp := cpu.r.StackPointer()
+	pc := cpu.r.ProgramCounter()
+	offset := cpu.add16S8(*sp, cpu.m.Byte(*pc))
+	*sp = offset
+}
+
 /**
  * Common operations
  */
@@ -770,38 +792,4 @@ func (cpu *CPU) offsetAddressFromC() uint16 {
 
 func (cpu *CPU) offsetAddress(address uint16) uint16 {
 	return address + 0xFF00
-}
-
-// Adds uint8 s to uint16 u, with s being treated as a signed variable.
-// Returns three values.
-// result is the result of the addition; carry is true if the result overflowed
-// underflowed, false otherwise; hcarry is true if the result cannot fit within
-// 11 bits.
-func addSignedUnsigned(s uint8, u uint16) (result uint16, carry, hcarry bool) {
-	// Stores the addition of the two numbers masked on their 11 least significant
-	// bits.
-	var partialResult uint16
-
-	if s > 127 {
-		ss := uint16(-s)
-		result = u - ss
-		if result > u {
-			carry = true
-		}
-		partialResult = (u & 0x7FF) - (ss & 0x7FF)
-	} else {
-		ss := uint16(s)
-		result = u + ss
-		if result < u {
-			carry = true
-		}
-		partialResult = (u & 0x7FF) + (ss & 0x7FF)
-	}
-
-	// We have a half carry if the partial result cannot fit within 11 bits.
-	if partialResult > 0x7FF {
-		hcarry = true
-	}
-
-	return result, carry, hcarry
 }
