@@ -740,6 +740,11 @@ func (cpu *CPU) AddOffsetImmediateToSP() {
  * Jumps / calls
  */
 
+func (cpu *CPU) shouldJump(flag flags.Flag, isSet bool) bool {
+	fs, _ := cpu.r.IsFlagSet(uint8(flag))
+	return fs == isSet
+}
+
 // JumpHL sets the program counter to be equal to the contents of register HL.
 func (cpu *CPU) JumpHL() {
 	pc := cpu.r.ProgramCounter()
@@ -774,17 +779,57 @@ func (cpu *CPU) JumpNN() {
 	*pc = cpu.immediateWord()
 }
 
-func (cpu *CPU) shouldJump(flag flags.Flag, isSet bool) bool {
-	fs, _ := cpu.r.IsFlagSet(uint8(flag))
-	return fs == isSet
-}
-
 // JumpNNConditionally sets the program counter to the immediate word if the
 // status of the provided flag matches the provided status.
 func (cpu *CPU) JumpNNConditionally(flag flags.Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.JumpNN()
 	}
+}
+
+// CallNN pushes the program counter onto the stack, then sets the program
+// counter to the immediate word.
+func (cpu *CPU) CallNN() {
+	pc := cpu.r.ProgramCounter()
+	cpu.pushWordOntoStack(*pc)
+	cpu.JumpNN()
+}
+
+// CallNNConditionally pushes the program counter onto the stack, then sets the
+// program counter to the immediate word. The condition is that the status of
+// the provided flag must match the provided status.
+func (cpu *CPU) CallNNConditionally(flag flags.Flag, isSet bool) {
+	if cpu.shouldJump(flag, isSet) {
+		cpu.CallNN()
+	}
+}
+
+// Return pops a word from the stack and puts it into the program counter.
+func (cpu *CPU) Return() {
+	pc := cpu.r.ProgramCounter()
+	*pc = cpu.popStack()
+}
+
+// ReturnConditionally pops a word from the stack and puts it into the program
+// counter if the status of the provided flag matches the provided status.
+func (cpu *CPU) ReturnConditionally(flag flags.Flag, isSet bool) {
+	if cpu.shouldJump(flag, isSet) {
+		cpu.Return()
+	}
+}
+
+// ReturnPostInterrupt is a placeholder.
+// TODO: Revisit when emulating interrupts.
+func (cpu *CPU) ReturnPostInterrupt() {
+	cpu.Return()
+}
+
+// Restart pushes the program counter onto the stack, then sets the program
+// counter to the provided value.
+func (cpu *CPU) Restart(t uint8) {
+	pc := cpu.r.ProgramCounter()
+	cpu.pushWordOntoStack(*pc)
+	*pc = uint16(t)
 }
 
 /**

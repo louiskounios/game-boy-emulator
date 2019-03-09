@@ -376,7 +376,7 @@ var instructions = instructionSet{
 	// Register (PC) <- Register (PC) + Memory[PC]
 	0x18: &instruction{0x18, 3, "JR r8", func(cpu *CPU) { cpu.JumpOffset() }},
 
-	// Register (PC) <- Register (PC) + Memory[PC] if Flag (C, Z) == (0, 1)
+	// If Flag (C, Z) == (0, 1) => Register (PC) <- Register (PC) + Memory[PC]
 	0x20: &instruction{0x20, 3, "JR NZ,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.Z, false) }},
 	0x28: &instruction{0x28, 3, "JR Z,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.Z, true) }},
 	0x30: &instruction{0x30, 3, "JR NC,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.C, false) }},
@@ -385,9 +385,40 @@ var instructions = instructionSet{
 	// Memory[PC and PC+1] -> Register (PC)
 	0xC3: &instruction{0xC3, 4, "JP a16", func(cpu *CPU) { cpu.JumpNN() }},
 
-	// Memory[PC and PC+1] -> Register (PC) if Flag (C, Z) == (0, 1)
+	// If Flag (C, Z) == (0, 1) => Memory[PC and PC+1] -> Register (PC)
 	0xC2: &instruction{0xC2, 4, "JP NZ,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.Z, false) }},
 	0xCA: &instruction{0xCA, 4, "JP Z,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.Z, true) }},
 	0xD2: &instruction{0xD2, 4, "JP NC,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.C, false) }},
 	0xDA: &instruction{0xDA, 4, "JP C,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.C, true) }},
+
+	// Register (PC) -> Memory[--SP and --SP], Memory[PC and PC+1] -> Register (PC)
+	0xCD: &instruction{0xCD, 6, "CALL a16", func(cpu *CPU) { cpu.CallNN() }},
+
+	// If Flag (C, Z) == (0, 1) => Register (PC) -> Memory[--SP and --SP], Memory[PC and PC+1] -> Register (PC)
+	0xC4: &instruction{0xC4, 6, "CALL NZ,a16", func(cpu *CPU) { cpu.CallNNConditionally(flags.Z, false) }},
+	0xCC: &instruction{0xCC, 6, "CALL Z,a16", func(cpu *CPU) { cpu.CallNNConditionally(flags.Z, true) }},
+	0xD4: &instruction{0xD4, 6, "CALL NC,a16", func(cpu *CPU) { cpu.CallNNConditionally(flags.C, false) }},
+	0xDC: &instruction{0xDC, 6, "CALL C,a16", func(cpu *CPU) { cpu.CallNNConditionally(flags.C, true) }},
+
+	// Memory[SP++ and SP++] -> Register (PC)
+	0xC9: &instruction{0xC9, 4, "RET", func(cpu *CPU) { cpu.Return() }},
+
+	// If Flag (C, Z) == (0, 1) => Memory[SP++ and SP++] -> Register (PC)
+	0xC0: &instruction{0xC0, 5, "RET NZ", func(cpu *CPU) { cpu.ReturnConditionally(flags.Z, false) }},
+	0xC8: &instruction{0xC8, 5, "RET Z", func(cpu *CPU) { cpu.ReturnConditionally(flags.Z, true) }},
+	0xD0: &instruction{0xD0, 5, "RET NC", func(cpu *CPU) { cpu.ReturnConditionally(flags.C, false) }},
+	0xD8: &instruction{0xD8, 5, "RET C", func(cpu *CPU) { cpu.ReturnConditionally(flags.C, true) }},
+
+	// Memory[SP++ and SP++] -> Register (PC), <more to do>
+	0xD9: &instruction{0xD9, 4, "RETI", func(cpu *CPU) { cpu.ReturnPostInterrupt() }},
+
+	// Register (PC) -> Memory[--SP and --SP], (0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38) -> Register (PC)
+	0xC7: &instruction{0xC7, 4, "RST 00H", func(cpu *CPU) { cpu.Restart(0x00) }},
+	0xCF: &instruction{0xCF, 4, "RST 08H", func(cpu *CPU) { cpu.Restart(0x08) }},
+	0xD7: &instruction{0xD7, 4, "RST 10H", func(cpu *CPU) { cpu.Restart(0x10) }},
+	0xDF: &instruction{0xDF, 4, "RST 18H", func(cpu *CPU) { cpu.Restart(0x18) }},
+	0xE7: &instruction{0xE7, 4, "RST 20H", func(cpu *CPU) { cpu.Restart(0x20) }},
+	0xEF: &instruction{0xEF, 4, "RST 28H", func(cpu *CPU) { cpu.Restart(0x28) }},
+	0xF7: &instruction{0xF7, 4, "RST 30H", func(cpu *CPU) { cpu.Restart(0x30) }},
+	0xFF: &instruction{0xFF, 4, "RST 38H", func(cpu *CPU) { cpu.Restart(0x38) }},
 }
