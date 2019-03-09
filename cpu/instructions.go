@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/loizoskounios/game-boy-emulator/cpu/registers"
+	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
 type (
@@ -189,7 +190,7 @@ var instructions = instructionSet{
 	0x21: &instruction{0x21, 3, "LD HL,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.HL) }},
 	0x31: &instruction{0x31, 3, "LD SP,d16", func(cpu *CPU) { cpu.PutNNIntoRR(registers.SP) }},
 
-	// Memory[PC] + Register (SP) -> Register (HL)
+	// Register (HL) <- Register (SP) + Memory[PC]
 	0xF8: &instruction{0xF8, 3, "LD HL,SP+r8", func(cpu *CPU) { cpu.PutOffsetSPIntoHL() }},
 
 	/**
@@ -364,4 +365,29 @@ var instructions = instructionSet{
 
 	// Register (SP) <- Register (SP) + Memory[PC]
 	0xE8: &instruction{0xE8, 4, "ADD SP,r8", func(cpu *CPU) { cpu.AddOffsetImmediateToSP() }},
+
+	/**
+	 * Jumps / calls
+	 */
+
+	// Register (HL) -> Register (PC)
+	0xE9: &instruction{0xE9, 1, "JP HL", func(cpu *CPU) { cpu.JumpHL() }},
+
+	// Register (PC) <- Register (PC) + Memory[PC]
+	0x18: &instruction{0x18, 3, "JR r8", func(cpu *CPU) { cpu.JumpOffset() }},
+
+	// Register (PC) <- Register (PC) + Memory[PC] if Flag (C, Z) == (0, 1)
+	0x20: &instruction{0x20, 3, "JR NZ,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.Z, false) }},
+	0x28: &instruction{0x28, 3, "JR Z,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.Z, true) }},
+	0x30: &instruction{0x30, 3, "JR NC,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.C, false) }},
+	0x38: &instruction{0x38, 3, "JR C,r8", func(cpu *CPU) { cpu.JumpOffsetConditionally(flags.C, true) }},
+
+	// Memory[PC and PC+1] -> Register (PC)
+	0xC3: &instruction{0xC3, 4, "JP a16", func(cpu *CPU) { cpu.JumpNN() }},
+
+	// Memory[PC and PC+1] -> Register (PC) if Flag (C, Z) == (0, 1)
+	0xC2: &instruction{0xC2, 4, "JP NZ,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.Z, false) }},
+	0xCA: &instruction{0xCA, 4, "JP Z,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.Z, true) }},
+	0xD2: &instruction{0xD2, 4, "JP NC,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.C, false) }},
+	0xDA: &instruction{0xDA, 4, "JP C,a16", func(cpu *CPU) { cpu.JumpNNConditionally(flags.C, true) }},
 }

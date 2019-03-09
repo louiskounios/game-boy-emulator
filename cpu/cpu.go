@@ -737,6 +737,57 @@ func (cpu *CPU) AddOffsetImmediateToSP() {
 }
 
 /**
+ * Jumps / calls
+ */
+
+// JumpHL sets the program counter to be equal to the contents of register HL.
+func (cpu *CPU) JumpHL() {
+	pc := cpu.r.ProgramCounter()
+	hl, _ := cpu.r.Paired(registers.HL)
+	*pc = hl
+}
+
+// JumpOffset sets the program counter to the result of adding the program
+// counter to the immediate byte, with the immediate byte being treated as a
+// signed integer in the range [-128, 127].
+func (cpu *CPU) JumpOffset() {
+	pc := cpu.r.ProgramCounter()
+	ib := cpu.m.Byte(*pc)
+	*pc = cpu.add16S8(*pc, ib)
+}
+
+// JumpOffsetConditionally sets the program counter to the result of adding the
+// program counter to the immediate byte, with the immediate byte being treated
+// as a signed integer in the range [-128, 127]. The condition is that the
+// status of the provided flag must match the provided status.
+func (cpu *CPU) JumpOffsetConditionally(flag flags.Flag, isSet bool) {
+	if cpu.shouldJump(flag, isSet) {
+		cpu.JumpOffset()
+	}
+}
+
+// JumpNN sets the program counter to the immediate word. Memory[PC+1] is
+// treated as the most significant byte and Memory[PC] as the least significant
+// byte.
+func (cpu *CPU) JumpNN() {
+	pc := cpu.r.ProgramCounter()
+	*pc = cpu.immediateWord()
+}
+
+func (cpu *CPU) shouldJump(flag flags.Flag, isSet bool) bool {
+	fs, _ := cpu.r.IsFlagSet(uint8(flag))
+	return fs == isSet
+}
+
+// JumpNNConditionally sets the program counter to the immediate word if the
+// status of the provided flag matches the provided status.
+func (cpu *CPU) JumpNNConditionally(flag flags.Flag, isSet bool) {
+	if cpu.shouldJump(flag, isSet) {
+		cpu.JumpNN()
+	}
+}
+
+/**
  * Common operations
  */
 
