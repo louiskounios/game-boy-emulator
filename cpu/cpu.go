@@ -895,6 +895,74 @@ func (cpu *CPU) Restart(t uint8) {
 }
 
 /**
+ * 8-bit rotation / shifts and bit instructions
+ */
+
+// RLCA rotates the contents of the accumulator to the left. The MSB becomes the
+// the LSB and the carry flag. Other flags are reset.
+func (cpu *CPU) RLCA() {
+	acc := cpu.r.Accumulator()
+
+	*acc = (*acc << 1) | (*acc >> 7)
+
+	cpu.r.PutFlag(uint8(flags.C), *acc&0x01 == 1)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(uint8(flags.Z))
+}
+
+// RLA rotates the contents of the accumulator to the left. The MSB becomes the
+// carry flag and the carry flag becomes the LSB.
+func (cpu *CPU) RLA() {
+	acc := cpu.r.Accumulator()
+
+	msb := *acc >> 7
+	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
+
+	*acc = *acc << 1
+	if carry {
+		*acc |= 0x01
+	}
+
+	cpu.r.PutFlag(uint8(flags.C), msb == 1)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(uint8(flags.Z))
+}
+
+// RRCA rotates the contents of the accumulator to the right. The LSB becomes
+// the MSB and the carry flag. Other flags are reset.
+func (cpu *CPU) RRCA() {
+	acc := cpu.r.Accumulator()
+
+	*acc = (*acc >> 1) | (*acc << 7)
+
+	cpu.r.PutFlag(uint8(flags.C), *acc&0x80 == 1)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(uint8(flags.Z))
+}
+
+// RRA rotates the contents of the accumulator to the right. The LSB becomes the
+// carry flag and the carry flag becomes the MSB.
+func (cpu *CPU) RRA() {
+	acc := cpu.r.Accumulator()
+
+	lsb := *acc << 7
+	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
+
+	*acc = *acc >> 1
+	if carry {
+		*acc |= 0x80
+	}
+
+	cpu.r.PutFlag(uint8(flags.C), lsb == 1)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(uint8(flags.Z))
+}
+
+/**
  * Common operations
  */
 

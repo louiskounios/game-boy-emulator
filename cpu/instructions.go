@@ -433,4 +433,14 @@ var instructions = instructionSet{
 	0xEF: &instruction{0xEF, 4, "RST 28H", func(cpu *CPU) { cpu.Restart(0x28) }},
 	0xF7: &instruction{0xF7, 4, "RST 30H", func(cpu *CPU) { cpu.Restart(0x30) }},
 	0xFF: &instruction{0xFF, 4, "RST 38H", func(cpu *CPU) { cpu.Restart(0x38) }},
+
+	/**
+	 * 8-bit rotation / shifts and bit instructions
+	 */
+
+	// Register (A) <- Register (A) << (1, -1)
+	0x07: &instruction{0x07, 1, "RLCA", func(cpu *CPU) { cpu.RLCA() }},
+	0x0F: &instruction{0x0F, 1, "RRCA", func(cpu *CPU) { cpu.RRCA() }},
+	0x17: &instruction{0x17, 1, "RLA", func(cpu *CPU) { cpu.RLA() }},
+	0x1F: &instruction{0x1F, 1, "RRA", func(cpu *CPU) { cpu.RRA() }},
 }
