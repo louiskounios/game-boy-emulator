@@ -644,6 +644,68 @@ func (cpu *CPU) DecrementHLDereference() {
 	cpu.m.SetByte(hl, val)
 }
 
+// DecimalAdjustA adjusts the contents of the accumulator following a binary
+// addition / subtraction. It retroactively turns the previous operation into
+// a BCD addition / subtraction. This is achieved by subtracting 6 from the
+// accumulator's upper and/or lower nybble. The N, C and H flags are utilised
+// to determine whether the correction must be added or subtracted (depending
+// on if the previous operation was an addition or subtraction) and how / if
+// each nybble should be affected (depending on if a carry or half-carry
+// occurred in the previous operation).
+//
+// Adapted from: https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
+func (cpu *CPU) DecimalAdjustA() {
+	acc := cpu.r.Accumulator()
+
+	if n, _ := cpu.r.IsFlagSet(uint8(flags.N)); !n {
+		if c, _ := cpu.r.IsFlagSet(uint8(flags.C)); c || *acc > 0x99 {
+			*acc += 0x60
+			cpu.r.SetFlag(uint8(flags.C))
+		}
+
+		if h, _ := cpu.r.IsFlagSet(uint8(flags.H)); h || (*acc&0x0F) > 0x09 {
+			*acc += 0x06
+		}
+	} else {
+		if c, _ := cpu.r.IsFlagSet(uint8(flags.C)); c {
+			*acc -= 0x60
+		}
+
+		if h, _ := cpu.r.IsFlagSet(uint8(flags.H)); h {
+			*acc -= 0x06
+		}
+	}
+
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.PutFlag(uint8(flags.Z), *acc == 0)
+}
+
+// ComplementA sets the accumulator to the one's complement of itself, and
+// updates the flags.
+func (cpu *CPU) ComplementA() {
+	acc := cpu.r.Accumulator()
+	*acc = ^*acc
+
+	cpu.r.SetFlag(uint8(flags.H))
+	cpu.r.SetFlag(uint8(flags.N))
+}
+
+// ComplementCarryFlag toggles the carry flag, and updates the flags.
+func (cpu *CPU) ComplementCarryFlag() {
+	cpu.r.ToggleFlag(uint8(flags.C))
+
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+}
+
+// SetCarryFlag sets the carry flag, and updates the flags.
+func (cpu *CPU) SetCarryFlag() {
+	cpu.r.SetFlag(uint8(flags.C))
+
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+}
+
 /**
  * 16-bit arithmetic / logical operations
  */

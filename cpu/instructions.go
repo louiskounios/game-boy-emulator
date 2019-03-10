@@ -341,6 +341,18 @@ var instructions = instructionSet{
 	// Memory[HL] <- Memory[HL] - 1
 	0x35: &instruction{0x35, 3, "DEC (HL)", func(cpu *CPU) { cpu.DecrementHLDereference() }},
 
+	// Register (A) decimally adjusted
+	0x27: &instruction{0x27, 1, "DAA", func(cpu *CPU) { cpu.DecimalAdjustA() }},
+
+	// ^Register (A) -> Register (A)
+	0x2F: &instruction{0x2F, 1, "CPL", func(cpu *CPU) { cpu.ComplementA() }},
+
+	// 1 -> Flag (C)
+	0x37: &instruction{0x37, 1, "SCF", func(cpu *CPU) { cpu.SetCarryFlag() }},
+
+	// ^Flag (C) -> Flag (C)
+	0x3F: &instruction{0x3F, 1, "CCF", func(cpu *CPU) { cpu.ComplementCarryFlag() }},
+
 	/**
 	 * 16-bit arithmetic / logical operations
 	 */
