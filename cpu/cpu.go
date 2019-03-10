@@ -905,7 +905,7 @@ func (cpu *CPU) RLCA() {
 
 	*acc = (*acc << 1) | (*acc >> 7)
 
-	cpu.r.PutFlag(uint8(flags.C), *acc&0x01 == 1)
+	cpu.r.PutFlag(uint8(flags.C), *acc&0x01 == 0x01)
 	cpu.r.ResetFlag(uint8(flags.H))
 	cpu.r.ResetFlag(uint8(flags.N))
 	cpu.r.ResetFlag(uint8(flags.Z))
@@ -937,7 +937,7 @@ func (cpu *CPU) RRCA() {
 
 	*acc = (*acc >> 1) | (*acc << 7)
 
-	cpu.r.PutFlag(uint8(flags.C), *acc&0x80 == 1)
+	cpu.r.PutFlag(uint8(flags.C), *acc&0x80 == 0x80)
 	cpu.r.ResetFlag(uint8(flags.H))
 	cpu.r.ResetFlag(uint8(flags.N))
 	cpu.r.ResetFlag(uint8(flags.Z))
