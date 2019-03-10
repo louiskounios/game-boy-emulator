@@ -898,16 +898,52 @@ func (cpu *CPU) Restart(t uint8) {
  * 8-bit rotation / shifts and bit instructions
  */
 
-// RLCA rotates the contents of the accumulator to the left. The MSB becomes the
-// the LSB and the carry flag. Other flags are reset.
-func (cpu *CPU) RLCA() {
-	acc := cpu.r.Accumulator()
+func rotate8(x uint8, right bool) (result uint8, rotBitSet bool) {
+	if right {
+		result = x>>1 | x<<7
+		rotBitSet = x&0x01 == 0x01
+	} else {
+		result = x<<1 | x>>7
+		rotBitSet = x&0x80 == 0x80
+	}
 
-	*acc = (*acc << 1) | (*acc >> 7)
+	return result, rotBitSet
+}
 
-	cpu.r.PutFlag(uint8(flags.C), *acc&0x01 == 0x01)
+func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
+	var rotBitSet bool
+	*x, rotBitSet = rotate8(*x, right)
+
+	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
+	if carry {
+		if right {
+			*x |= 0x80
+		} else {
+			*x |= 0x01
+		}
+	}
+
+	cpu.r.PutFlag(uint8(flags.C), rotBitSet)
 	cpu.r.ResetFlag(uint8(flags.H))
 	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+}
+
+func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
+	var rotBitSet bool
+	*x, rotBitSet = rotate8(*x, right)
+
+	cpu.r.PutFlag(uint8(flags.C), rotBitSet)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+}
+
+// RLCA rotates the contents of the accumulator to the left. The MSB becomes the
+// LSB and the carry flag. All other flags are reset.
+func (cpu *CPU) RLCA() {
+	acc := cpu.r.Accumulator()
+	cpu.rotate8BothHelper(acc, false)
 	cpu.r.ResetFlag(uint8(flags.Z))
 }
 
@@ -915,31 +951,15 @@ func (cpu *CPU) RLCA() {
 // carry flag and the carry flag becomes the LSB.
 func (cpu *CPU) RLA() {
 	acc := cpu.r.Accumulator()
-
-	msb := *acc >> 7
-	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
-
-	*acc = *acc << 1
-	if carry {
-		*acc |= 0x01
-	}
-
-	cpu.r.PutFlag(uint8(flags.C), msb == 1)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.rotate8SwapHelper(acc, false)
 	cpu.r.ResetFlag(uint8(flags.Z))
 }
 
 // RRCA rotates the contents of the accumulator to the right. The LSB becomes
-// the MSB and the carry flag. Other flags are reset.
+// the MSB and the carry flag. All other flags are reset.
 func (cpu *CPU) RRCA() {
 	acc := cpu.r.Accumulator()
-
-	*acc = (*acc >> 1) | (*acc << 7)
-
-	cpu.r.PutFlag(uint8(flags.C), *acc&0x80 == 0x80)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.rotate8BothHelper(acc, true)
 	cpu.r.ResetFlag(uint8(flags.Z))
 }
 
@@ -947,19 +967,56 @@ func (cpu *CPU) RRCA() {
 // carry flag and the carry flag becomes the MSB.
 func (cpu *CPU) RRA() {
 	acc := cpu.r.Accumulator()
-
-	lsb := *acc << 7
-	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
-
-	*acc = *acc >> 1
-	if carry {
-		*acc |= 0x80
-	}
-
-	cpu.r.PutFlag(uint8(flags.C), lsb == 1)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.rotate8SwapHelper(acc, true)
 	cpu.r.ResetFlag(uint8(flags.Z))
+}
+
+// RLCACB rotates the contents of the accumulator to the left. The MSB becomes
+// the LSB and the carry flag. Flags are updated accordingly.
+func (cpu *CPU) RLCACB() {
+	acc := cpu.r.Accumulator()
+	cpu.rotate8BothHelper(acc, false)
+}
+
+// RLC rotates the contents of the provided register to the left. The MSB
+// becomes the LSB and the carry flag. Flags are updated accordingly.
+func (cpu *CPU) RLC(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.rotate8BothHelper(a, false)
+}
+
+// RLCHLDereference rotates the contents of the memory location referenced by
+// register HL to the left. The MSB becomes the the LSB and the carry flag.
+// Flags are updated accordingly.
+func (cpu *CPU) RLCHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.rotate8BothHelper(&val, false)
+	cpu.m.SetByte(hl, val)
+}
+
+// RRCACB rotates the contents of the accumulator to the right. The LSB becomes
+// the MSB and the carry flag. Flags are updated accordingly.
+func (cpu *CPU) RRCACB() {
+	acc := cpu.r.Accumulator()
+	cpu.rotate8BothHelper(acc, true)
+}
+
+// RRC rotates the contents of the provided register to the right. The LSB
+// becomes the MSB and the carry flag. Flags are updated accordingly.
+func (cpu *CPU) RRC(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.rotate8BothHelper(a, true)
+}
+
+// RRCHLDereference rotates the contents of the memory location referenced by
+// register HL to the right. The LSB becomes the the MSB and the carry flag.
+// Flags are updated accordingly.
+func (cpu *CPU) RRCHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.rotate8BothHelper(&val, true)
+	cpu.m.SetByte(hl, val)
 }
 
 /**

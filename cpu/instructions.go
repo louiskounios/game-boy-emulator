@@ -438,9 +438,39 @@ var instructions = instructionSet{
 	 * 8-bit rotation / shifts and bit instructions
 	 */
 
-	// Register (A) <- Register (A) << (1, -1)
+	// Register (A) << / >>
 	0x07: &instruction{0x07, 1, "RLCA", func(cpu *CPU) { cpu.RLCA() }},
 	0x0F: &instruction{0x0F, 1, "RRCA", func(cpu *CPU) { cpu.RRCA() }},
 	0x17: &instruction{0x17, 1, "RLA", func(cpu *CPU) { cpu.RLA() }},
 	0x1F: &instruction{0x1F, 1, "RRA", func(cpu *CPU) { cpu.RRA() }},
+}
+
+var instructionsCB = instructionSet{
+	/**
+	 * 8-bit rotation / shifts and bit instructions
+	 */
+
+	// Register (A, B, C, D, E, H, L) <<
+	0x07: &instruction{0x07, 1, "RLC A", func(cpu *CPU) { cpu.RLCACB() }},
+	0x00: &instruction{0x00, 1, "RLC B", func(cpu *CPU) { cpu.RLC(registers.B) }},
+	0x01: &instruction{0x01, 1, "RLC C", func(cpu *CPU) { cpu.RLC(registers.C) }},
+	0x02: &instruction{0x02, 1, "RLC D", func(cpu *CPU) { cpu.RLC(registers.D) }},
+	0x03: &instruction{0x03, 1, "RLC E", func(cpu *CPU) { cpu.RLC(registers.E) }},
+	0x04: &instruction{0x04, 1, "RLC H", func(cpu *CPU) { cpu.RLC(registers.H) }},
+	0x05: &instruction{0x05, 1, "RLC L", func(cpu *CPU) { cpu.RLC(registers.L) }},
+
+	// Memory[HL] <<
+	0x06: &instruction{0x06, 3, "RLC (HL)", func(cpu *CPU) { cpu.RLCHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) >>
+	0x0F: &instruction{0x0F, 1, "RRC A", func(cpu *CPU) { cpu.RRCACB() }},
+	0x08: &instruction{0x08, 1, "RRC B", func(cpu *CPU) { cpu.RRC(registers.B) }},
+	0x09: &instruction{0x09, 1, "RRC C", func(cpu *CPU) { cpu.RRC(registers.C) }},
+	0x0A: &instruction{0x0A, 1, "RRC D", func(cpu *CPU) { cpu.RRC(registers.D) }},
+	0x0B: &instruction{0x0B, 1, "RRC E", func(cpu *CPU) { cpu.RRC(registers.E) }},
+	0x0C: &instruction{0x0C, 1, "RRC H", func(cpu *CPU) { cpu.RRC(registers.H) }},
+	0x0D: &instruction{0x0D, 1, "RRC L", func(cpu *CPU) { cpu.RRC(registers.L) }},
+
+	// Memory[HL] >>
+	0x0E: &instruction{0x0E, 3, "RRC (HL)", func(cpu *CPU) { cpu.RRCHLDereference() }},
 }
