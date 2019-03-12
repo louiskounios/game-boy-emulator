@@ -1207,6 +1207,87 @@ func (cpu *CPU) SwapHLDereference() {
 	cpu.m.SetByte(hl, val)
 }
 
+func (cpu *CPU) bit8(x, b uint8) {
+	isSet := (x>>b)&0x01 == 1
+
+	cpu.r.SetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), !isSet)
+}
+
+// BitA sets the Z flag to the complement of the contents of the provided bit in
+// the accumulator. The H and N flags are set and reset respectively.
+func (cpu *CPU) BitA(b uint8) {
+	acc := cpu.r.Accumulator()
+	cpu.bit8(*acc, b)
+}
+
+// Bit sets the Z flag to the complement of the contents of the provided bit in
+// the provided register. The H and N flags are set and reset respectively.
+func (cpu *CPU) Bit(b uint8, r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.bit8(*a, b)
+}
+
+// BitHLDereference sets the Z flag to the complement of the contents of the
+// provided bit in the contents of the memory location referenced by register
+// HL. The H and N flags are set and reset respectively.
+func (cpu *CPU) BitHLDereference(b uint8) {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.bit8(val, b)
+}
+
+func (cpu *CPU) reset8(x *uint8, b uint8) {
+	*x &^= (1 << b)
+}
+
+// ResetA resets the provided bit in the accumulator.
+func (cpu *CPU) ResetA(b uint8) {
+	acc := cpu.r.Accumulator()
+	cpu.reset8(acc, b)
+}
+
+// Reset resets the provided bit in the provided register.
+func (cpu *CPU) Reset(b uint8, r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.reset8(a, b)
+}
+
+// ResetHLDereference resets the provided bit in the contents of the memory
+// location referenced by register HL.
+func (cpu *CPU) ResetHLDereference(b uint8) {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.reset8(&val, b)
+	cpu.m.SetByte(hl, val)
+}
+
+func (cpu *CPU) set8(x *uint8, b uint8) {
+	*x |= (1 << b)
+}
+
+// SetA sets the provided bit in the accumulator.
+func (cpu *CPU) SetA(b uint8) {
+	acc := cpu.r.Accumulator()
+	cpu.set8(acc, b)
+}
+
+// Set sets the provided bit in the provided register.
+func (cpu *CPU) Set(b uint8, r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.set8(a, b)
+}
+
+// SetHLDereference sets the provided bit in the contents of the memory location
+// referenced by register HL.
+func (cpu *CPU) SetHLDereference(b uint8) {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.set8(&val, b)
+	cpu.m.SetByte(hl, val)
+}
+
 /**
  * Common operations
  */
