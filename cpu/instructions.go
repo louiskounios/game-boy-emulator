@@ -473,4 +473,76 @@ var instructionsCB = instructionSet{
 
 	// Memory[HL] >>
 	0x0E: &instruction{0x0E, 3, "RRC (HL)", func(cpu *CPU) { cpu.RRCHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) <<
+	0x17: &instruction{0x17, 1, "RL A", func(cpu *CPU) { cpu.RLA() }},
+	0x10: &instruction{0x10, 1, "RL B", func(cpu *CPU) { cpu.RL(registers.B) }},
+	0x11: &instruction{0x11, 1, "RL C", func(cpu *CPU) { cpu.RL(registers.C) }},
+	0x12: &instruction{0x12, 1, "RL D", func(cpu *CPU) { cpu.RL(registers.D) }},
+	0x13: &instruction{0x13, 1, "RL E", func(cpu *CPU) { cpu.RL(registers.E) }},
+	0x14: &instruction{0x14, 1, "RL H", func(cpu *CPU) { cpu.RL(registers.H) }},
+	0x15: &instruction{0x15, 1, "RL L", func(cpu *CPU) { cpu.RL(registers.L) }},
+
+	// Memory[HL] <<
+	0x16: &instruction{0x16, 3, "RL (HL)", func(cpu *CPU) { cpu.RLHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) >>
+	0x1F: &instruction{0x1F, 1, "RR A", func(cpu *CPU) { cpu.RRA() }},
+	0x18: &instruction{0x18, 1, "RR B", func(cpu *CPU) { cpu.RR(registers.B) }},
+	0x19: &instruction{0x19, 1, "RR C", func(cpu *CPU) { cpu.RR(registers.C) }},
+	0x1A: &instruction{0x1A, 1, "RR D", func(cpu *CPU) { cpu.RR(registers.D) }},
+	0x1B: &instruction{0x1B, 1, "RR E", func(cpu *CPU) { cpu.RR(registers.E) }},
+	0x1C: &instruction{0x1C, 1, "RR H", func(cpu *CPU) { cpu.RR(registers.H) }},
+	0x1D: &instruction{0x1D, 1, "RR L", func(cpu *CPU) { cpu.RR(registers.L) }},
+
+	// Memory[HL] >>
+	0x1E: &instruction{0x1E, 3, "RR (HL)", func(cpu *CPU) { cpu.RRHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) <<
+	0x27: &instruction{0x27, 1, "SLA A", func(cpu *CPU) { cpu.SLAA() }},
+	0x20: &instruction{0x20, 1, "SLA B", func(cpu *CPU) { cpu.SLA(registers.B) }},
+	0x21: &instruction{0x21, 1, "SLA C", func(cpu *CPU) { cpu.SLA(registers.C) }},
+	0x22: &instruction{0x22, 1, "SLA D", func(cpu *CPU) { cpu.SLA(registers.D) }},
+	0x23: &instruction{0x23, 1, "SLA E", func(cpu *CPU) { cpu.SLA(registers.E) }},
+	0x24: &instruction{0x24, 1, "SLA H", func(cpu *CPU) { cpu.SLA(registers.H) }},
+	0x25: &instruction{0x25, 1, "SLA L", func(cpu *CPU) { cpu.SLA(registers.L) }},
+
+	// Memory[HL] <<
+	0x26: &instruction{0x26, 3, "SLA (HL)", func(cpu *CPU) { cpu.SLAHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) >>
+	0x2F: &instruction{0x2F, 1, "SRA A", func(cpu *CPU) { cpu.SRAA() }},
+	0x28: &instruction{0x28, 1, "SRA B", func(cpu *CPU) { cpu.SRA(registers.B) }},
+	0x29: &instruction{0x29, 1, "SRA C", func(cpu *CPU) { cpu.SRA(registers.C) }},
+	0x2A: &instruction{0x2A, 1, "SRA D", func(cpu *CPU) { cpu.SRA(registers.D) }},
+	0x2B: &instruction{0x2B, 1, "SRA E", func(cpu *CPU) { cpu.SRA(registers.E) }},
+	0x2C: &instruction{0x2C, 1, "SRA H", func(cpu *CPU) { cpu.SRA(registers.H) }},
+	0x2D: &instruction{0x2D, 1, "SRA L", func(cpu *CPU) { cpu.SRA(registers.L) }},
+
+	// Memory[HL] >>
+	0x2E: &instruction{0x2E, 3, "SRA (HL)", func(cpu *CPU) { cpu.SRAHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) >>
+	0x3F: &instruction{0x3F, 1, "SRL A", func(cpu *CPU) { cpu.SRLA() }},
+	0x38: &instruction{0x38, 1, "SRL B", func(cpu *CPU) { cpu.SRL(registers.B) }},
+	0x39: &instruction{0x39, 1, "SRL C", func(cpu *CPU) { cpu.SRL(registers.C) }},
+	0x3A: &instruction{0x3A, 1, "SRL D", func(cpu *CPU) { cpu.SRL(registers.D) }},
+	0x3B: &instruction{0x3B, 1, "SRL E", func(cpu *CPU) { cpu.SRL(registers.E) }},
+	0x3C: &instruction{0x3C, 1, "SRL H", func(cpu *CPU) { cpu.SRL(registers.H) }},
+	0x3D: &instruction{0x3D, 1, "SRL L", func(cpu *CPU) { cpu.SRL(registers.L) }},
+
+	// Memory[HL] >>
+	0x3E: &instruction{0x3E, 3, "SRL (HL)", func(cpu *CPU) { cpu.SRLHLDereference() }},
+
+	// Register (A, B, C, D, E, H, L) <- Register (A, B, C, D, E, H, L)[0-4] | Register (A, B, C, D, E, H, L)[4-8]
+	0x37: &instruction{0x37, 1, "SWAP A", func(cpu *CPU) { cpu.SwapA() }},
+	0x30: &instruction{0x30, 1, "SWAP B", func(cpu *CPU) { cpu.Swap(registers.B) }},
+	0x31: &instruction{0x31, 1, "SWAP C", func(cpu *CPU) { cpu.Swap(registers.C) }},
+	0x32: &instruction{0x32, 1, "SWAP D", func(cpu *CPU) { cpu.Swap(registers.D) }},
+	0x33: &instruction{0x33, 1, "SWAP E", func(cpu *CPU) { cpu.Swap(registers.E) }},
+	0x34: &instruction{0x34, 1, "SWAP H", func(cpu *CPU) { cpu.Swap(registers.H) }},
+	0x35: &instruction{0x35, 1, "SWAP L", func(cpu *CPU) { cpu.Swap(registers.L) }},
+
+	// Memory[HL] <- Memory[HL][0-4] | Memory[HL][4-8]
+	0x36: &instruction{0x36, 3, "SWAP (HL)", func(cpu *CPU) { cpu.SwapHLDereference() }},
 }

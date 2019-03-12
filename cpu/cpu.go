@@ -898,21 +898,22 @@ func (cpu *CPU) Restart(t uint8) {
  * 8-bit rotation / shifts and bit instructions
  */
 
-func rotate8(x uint8, right bool) (result uint8, rotBitSet bool) {
+func rotate8(x uint8, right bool) (result uint8, rotatedBitset bool) {
 	if right {
+		rotatedBitset = x&0x01 == 0x01
 		result = x>>1 | x<<7
-		rotBitSet = x&0x01 == 0x01
+
 	} else {
+		rotatedBitset = x&0x80 == 0x80
 		result = x<<1 | x>>7
-		rotBitSet = x&0x80 == 0x80
 	}
 
-	return result, rotBitSet
+	return result, rotatedBitset
 }
 
 func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
-	var rotBitSet bool
-	*x, rotBitSet = rotate8(*x, right)
+	var rotatedBitset bool
+	*x, rotatedBitset = rotate8(*x, right)
 
 	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
 	if carry {
@@ -923,17 +924,17 @@ func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
 		}
 	}
 
-	cpu.r.PutFlag(uint8(flags.C), rotBitSet)
+	cpu.r.PutFlag(uint8(flags.C), rotatedBitset)
 	cpu.r.ResetFlag(uint8(flags.H))
 	cpu.r.ResetFlag(uint8(flags.N))
 	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
 }
 
 func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
-	var rotBitSet bool
-	*x, rotBitSet = rotate8(*x, right)
+	var rotatedBitset bool
+	*x, rotatedBitset = rotate8(*x, right)
 
-	cpu.r.PutFlag(uint8(flags.C), rotBitSet)
+	cpu.r.PutFlag(uint8(flags.C), rotatedBitset)
 	cpu.r.ResetFlag(uint8(flags.H))
 	cpu.r.ResetFlag(uint8(flags.N))
 	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
@@ -948,7 +949,7 @@ func (cpu *CPU) RLCA() {
 }
 
 // RLA rotates the contents of the accumulator to the left. The MSB becomes the
-// carry flag and the carry flag becomes the LSB.
+// carry flag and the carry flag becomes the LSB. All other flags are reset.
 func (cpu *CPU) RLA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8SwapHelper(acc, false)
@@ -964,7 +965,7 @@ func (cpu *CPU) RRCA() {
 }
 
 // RRA rotates the contents of the accumulator to the right. The LSB becomes the
-// carry flag and the carry flag becomes the MSB.
+// carry flag and the carry flag becomes the MSB. All other flags are reset.
 func (cpu *CPU) RRA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8SwapHelper(acc, true)
@@ -1016,6 +1017,193 @@ func (cpu *CPU) RRCHLDereference() {
 	hl, _ := cpu.r.Paired(registers.HL)
 	val := cpu.m.Byte(hl)
 	cpu.rotate8BothHelper(&val, true)
+	cpu.m.SetByte(hl, val)
+}
+
+// RLACB rotates the contents of the accumulator to the left. The MSB becomes
+// the carry flag and the carry flag becomes the LSB. Flags are updated
+// accordingly.
+func (cpu *CPU) RLACB() {
+	acc := cpu.r.Accumulator()
+	cpu.rotate8SwapHelper(acc, false)
+}
+
+// RL rotates the contents of the provided register to the left. The MSB becomes
+// the carry flag and the carry flag becomes the LSB. Flags are updated
+// accordingly.
+func (cpu *CPU) RL(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.rotate8SwapHelper(a, false)
+}
+
+// RLHLDereference rotates the contents of the memory location referenced by
+// register HL to the left. The MSB becomes the carry flag and the carry flag
+// becomes the LSB. Flags are updated accordingly.
+func (cpu *CPU) RLHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.rotate8SwapHelper(&val, false)
+	cpu.m.SetByte(hl, val)
+}
+
+// RRACB rotates the contents of the accumulator to the right. The LSB becomes
+// the carry flag and the carry flag becomes the MSB. Flags are updated
+// accordingly.
+func (cpu *CPU) RRACB() {
+	acc := cpu.r.Accumulator()
+	cpu.rotate8SwapHelper(acc, true)
+}
+
+// RR rotates the contents of the provided register to the right. The LSB
+// becomes the carry flag and the carry flag becomes the MSB. Flags are updated
+// accordingly.
+func (cpu *CPU) RR(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.rotate8SwapHelper(a, true)
+}
+
+// RRHLDereference rotates the contents of the memory location referenced by
+// register HL to the right. The LSB becomes the carry flag and the carry flag
+// becomes the MSB. Flags are updated accordingly.
+func (cpu *CPU) RRHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.rotate8SwapHelper(&val, true)
+	cpu.m.SetByte(hl, val)
+}
+
+func shift8(x uint8, right bool) (result uint8, shiftedBitSet bool) {
+	if right {
+		shiftedBitSet = x&0x01 == 0x01
+		result = x >> 1
+	} else {
+		shiftedBitSet = x&0x80 == 0x80
+		result = x << 1
+	}
+
+	return result, shiftedBitSet
+}
+
+func (cpu *CPU) shift8Helper(x *uint8, right bool) {
+	var shiftedBitSet bool
+	*x, shiftedBitSet = shift8(*x, right)
+
+	cpu.r.PutFlag(uint8(flags.C), shiftedBitSet)
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+}
+
+// SLAA shifts the contents of the accumulator to the left. The MSB becomes the
+// carry flag and the LSB is reset. Flags are updated accordingly.
+func (cpu *CPU) SLAA() {
+	acc := cpu.r.Accumulator()
+	cpu.shift8Helper(acc, false)
+}
+
+// SLA shifts the contents of the provided register to the left. The MSB becomes
+// the carry flag and the LSB is reset. Flags are updated accordingly.
+func (cpu *CPU) SLA(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.shift8Helper(a, false)
+}
+
+// SLAHLDereference shifts the contents of the memory location referenced by
+// register HL to the left. The MSB becomes the carry flag and the LSB is reset.
+// Flags are updated accordingly.
+func (cpu *CPU) SLAHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.shift8Helper(&val, false)
+	cpu.m.SetByte(hl, val)
+}
+
+// SRAA shifts the contents of the accumulator to the right. The LSB becomes the
+// carry flag and the MSB retains its value. Flags are updated accordingly.
+func (cpu *CPU) SRAA() {
+	acc := cpu.r.Accumulator()
+	bit7mask := *acc & 0x80
+	cpu.shift8Helper(acc, true)
+	*acc = *acc | bit7mask
+}
+
+// SRA shifts the contents of the provided register to the right. The LSB
+// becomes the carry flag and the MSB retains its value. Flags are updated
+// accordingly.
+func (cpu *CPU) SRA(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	bit7mask := *a & 0x80
+	cpu.shift8Helper(a, true)
+	*a = *a | bit7mask
+}
+
+// SRAHLDereference shifts the contents of the memory location referenced by
+// register HL to the right. The LSB becomes the carry flag and the MSB retains
+// its value. Flags are updated accordingly.
+func (cpu *CPU) SRAHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	bit7mask := val & 0x80
+	cpu.shift8Helper(&val, true)
+	val |= bit7mask
+	cpu.m.SetByte(hl, val)
+}
+
+// SRLA shifts the contents of the accumulator to the right. The LSB becomes the
+// carry flag and the MSB is reset. Flags are updated accordingly.
+func (cpu *CPU) SRLA() {
+	acc := cpu.r.Accumulator()
+	cpu.shift8Helper(acc, true)
+}
+
+// SRL shifts the contents of the provided register to the right. The LSB
+// becomes the carry flag and the MSB is reset. Flags are updated accordingly.
+func (cpu *CPU) SRL(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.shift8Helper(a, true)
+}
+
+// SRLHLDereference shifts the contents of the memory location referenced by
+// register HL to the right. The LSB becomes the carry flag and the MSB is
+// reset. Flags are updated accordingly.
+func (cpu *CPU) SRLHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.shift8Helper(&val, true)
+	cpu.m.SetByte(hl, val)
+}
+
+func swap8(x uint8) uint8 {
+	return x<<4 | x>>4
+}
+
+func (cpu *CPU) swap8Helper(x *uint8) {
+	*x = swap8(*x)
+
+	cpu.r.ResetFlag(uint8(flags.C))
+	cpu.r.ResetFlag(uint8(flags.H))
+	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+}
+
+// SwapA swaps the accumulator nibbles. Flags are updated accordingly.
+func (cpu *CPU) SwapA() {
+	acc := cpu.r.Accumulator()
+	cpu.swap8Helper(acc)
+}
+
+// Swap swaps the provided register's nibbles. Flags are updated accordingly.
+func (cpu *CPU) Swap(r registers.Register) {
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.swap8Helper(a)
+}
+
+// SwapHLDereference swaps the nibbles of the contents of the memory location
+// referenced by register HL. Flags are updated accordingly.
+func (cpu *CPU) SwapHLDereference() {
+	hl, _ := cpu.r.Paired(registers.HL)
+	val := cpu.m.Byte(hl)
+	cpu.swap8Helper(&val)
 	cpu.m.SetByte(hl, val)
 }
 
