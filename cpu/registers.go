@@ -1,81 +1,14 @@
-package registers
+package cpu
 
 import (
 	"errors"
 	"fmt"
-
-	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 )
 
 var (
 	errUnknownAuxiliaryRegister = errors.New("unknown auxiliary register")
 	errUnknownPairedRegister    = errors.New("unknown paired register")
 )
-
-// Register is the type for our individual registers enumeration.
-type Register uint8
-
-// Enumerates individual registers.
-const (
-	A Register = iota
-	F
-	B
-	C
-	D
-	E
-	H
-	L
-	BC
-	DE
-	HL
-	SP
-	PC
-)
-
-func (register Register) String() string {
-	switch register {
-	case 0:
-		return "A"
-	case 1:
-		return "F"
-	case 2:
-		return "B"
-	case 3:
-		return "C"
-	case 4:
-		return "D"
-	case 5:
-		return "E"
-	case 6:
-		return "H"
-	case 7:
-		return "L"
-	case 8:
-		return "BC"
-	case 9:
-		return "DE"
-	case 10:
-		return "HL"
-	case 11:
-		return "SP"
-	case 12:
-		return "PC"
-	default:
-		return "?"
-	}
-}
-
-// FlagBearer is the interface that wraps the functionality that must be
-// provided by an implementation of an 8-bit flags register.
-type FlagBearer interface {
-	IsSet(uint8) (bool, error)
-	Put(uint8, bool) error
-	Reset(uint8) error
-	Set(uint8) error
-	Toggle(uint8) error
-	Value() uint8
-	SetValue(uint8)
-}
 
 // Registers consists of the accumulator and flags registers, three paired
 // registers consisting of two 8-bit sub-registers, a stack pointer,
@@ -90,11 +23,11 @@ type Registers struct {
 	pc *uint16
 }
 
-// New returns new registers.
-func New() *Registers {
+// NewRegisters returns new registers.
+func NewRegisters() *Registers {
 	return &Registers{
 		new(uint8),
-		flags.New(),
+		NewFlags(),
 		NewRegisterPair(),
 		NewRegisterPair(),
 		NewRegisterPair(),
@@ -124,19 +57,19 @@ func (r *Registers) Accumulator() *uint8 {
 // error if encountered.
 func (r *Registers) Auxiliary(rr Register) (ret *uint8, err error) {
 	switch rr {
-	case A:
+	case RegisterA:
 		ret = r.Accumulator()
-	case B:
+	case RegisterB:
 		ret = r.bc.Hi()
-	case C:
+	case RegisterC:
 		ret = r.bc.Lo()
-	case D:
+	case RegisterD:
 		ret = r.de.Hi()
-	case E:
+	case RegisterE:
 		ret = r.de.Lo()
-	case H:
+	case RegisterH:
 		ret = r.hl.Hi()
-	case L:
+	case RegisterL:
 		ret = r.hl.Lo()
 	default:
 		err = errUnknownAuxiliaryRegister
@@ -149,11 +82,11 @@ func (r *Registers) getRegisterPairer(rr Register) (RegisterPairer, error) {
 	var rp RegisterPairer
 
 	switch rr {
-	case BC:
+	case RegisterBC:
 		rp = r.bc
-	case DE:
+	case RegisterDE:
 		rp = r.de
-	case HL:
+	case RegisterHL:
 		rp = r.hl
 	default:
 		return nil, errUnknownPairedRegister
@@ -233,28 +166,28 @@ func (r *Registers) ProgramCounter() *uint16 {
 }
 
 // IsFlagSet returns whether flag is set or not and an error, if encountered.
-func (r *Registers) IsFlagSet(flag uint8) (bool, error) {
+func (r *Registers) IsFlagSet(flag Flag) (bool, error) {
 	return r.f.IsSet(flag)
 }
 
 // PutFlag sets flag if set is true, and resets it otherwise. An error is
 // returned, if encountered.
-func (r *Registers) PutFlag(flag uint8, set bool) error {
+func (r *Registers) PutFlag(flag Flag, set bool) error {
 	return r.f.Put(flag, set)
 }
 
 // ResetFlag resets flag, and returns an error, if encountered.
-func (r *Registers) ResetFlag(flag uint8) error {
+func (r *Registers) ResetFlag(flag Flag) error {
 	return r.f.Reset(flag)
 }
 
 // SetFlag sets flag, and returns an error, if encountered.
-func (r *Registers) SetFlag(flag uint8) error {
+func (r *Registers) SetFlag(flag Flag) error {
 	return r.f.Set(flag)
 }
 
 // ToggleFlag toggles flag, and returns an error, if encountered.
-func (r *Registers) ToggleFlag(flag uint8) error {
+func (r *Registers) ToggleFlag(flag Flag) error {
 	return r.f.Toggle(flag)
 }
 

@@ -1,8 +1,6 @@
 package cpu
 
 import (
-	"github.com/loizoskounios/game-boy-emulator/cpu/registers"
-	"github.com/loizoskounios/game-boy-emulator/cpu/registers/flags"
 	"github.com/loizoskounios/game-boy-emulator/mmu"
 )
 
@@ -10,15 +8,15 @@ import (
 type CPU struct {
 	c *clock
 	i *instruction
-	r *registers.Registers
+	r *Registers
 	m *mmu.Memory
 }
 
-// NewCPU returns a new CPU struct.
-func NewCPU() *CPU {
+// New returns a new CPU struct.
+func New() *CPU {
 	c := &clock{}
 	i := &instruction{}
-	r := registers.New()
+	r := NewRegisters()
 	m := &mmu.Memory{}
 
 	return &CPU{
@@ -38,7 +36,7 @@ func (cpu *CPU) nop() {
  */
 
 // PutRIntoR puts the value stored in register from into register to.
-func (cpu *CPU) PutRIntoR(from, to registers.Register) {
+func (cpu *CPU) PutRIntoR(from, to Register) {
 	f, _ := cpu.r.Auxiliary(from)
 	t, _ := cpu.r.Auxiliary(to)
 	*t = *f
@@ -50,60 +48,60 @@ func (cpu *CPU) PutRIntoR(from, to registers.Register) {
 // It then saves the contents of register A into that address in memory.
 func (cpu *CPU) PutAIntoNNAddress() {
 	address := cpu.immediateWord()
-	cpu.putRegisterIntoMemory(registers.A, address)
+	cpu.putRegisterIntoMemory(RegisterA, address)
 }
 
 // PutAIntoBCAddress puts the value stored in register from into the memory
 // location referenced by the BC register.
 func (cpu *CPU) PutAIntoBCAddress() {
-	cpu.putRegisterIntoAddressInRegister(registers.BC, registers.A)
+	cpu.putRegisterIntoAddressInRegister(RegisterBC, RegisterA)
 }
 
 // PutAIntoDEAddress puts the value stored in register from into the memory
 // location referenced by the DE register.
 func (cpu *CPU) PutAIntoDEAddress() {
-	cpu.putRegisterIntoAddressInRegister(registers.DE, registers.A)
+	cpu.putRegisterIntoAddressInRegister(RegisterDE, RegisterA)
 }
 
 // PutRIntoHLAddress puts the value stored in register from into the memory
 // location referenced by the HL register.
-func (cpu *CPU) PutRIntoHLAddress(from registers.Register) {
-	cpu.putRegisterIntoAddressInRegister(registers.HL, from)
+func (cpu *CPU) PutRIntoHLAddress(from Register) {
+	cpu.putRegisterIntoAddressInRegister(RegisterHL, from)
 }
 
 // PutAIntoHLAddressThenIncrementHL puts the value stored in register A into
 // the memory location referenced by the HL register, then increments register
 // HL.
 func (cpu *CPU) PutAIntoHLAddressThenIncrementHL() {
-	cpu.PutRIntoHLAddress(registers.A)
-	cpu.incrementRegister(registers.HL)
+	cpu.PutRIntoHLAddress(RegisterA)
+	cpu.incrementRegister(RegisterHL)
 }
 
 // PutAIntoHLAddressThenDecrementHL puts the value stored in register A into
 // the memory location referenced by the HL register, then increments register
 // HL.
 func (cpu *CPU) PutAIntoHLAddressThenDecrementHL() {
-	cpu.PutRIntoHLAddress(registers.A)
-	cpu.decrementRegister(registers.HL)
+	cpu.PutRIntoHLAddress(RegisterA)
+	cpu.decrementRegister(RegisterHL)
 }
 
 // PutAIntoOffsetCAddress puts the value stored in Register A into the offset
 // memory location resulting from the addition [C+0xFF00].
 func (cpu *CPU) PutAIntoOffsetCAddress() {
 	address := cpu.offsetAddressFromC()
-	cpu.putRegisterIntoMemory(registers.A, address)
+	cpu.putRegisterIntoMemory(RegisterA, address)
 }
 
 // PutAIntoOffsetImmediateAddress puts the value stored in Register A into the
 // offset memory location resulting from the addition [Memory[PC]+0xFF00].
 func (cpu *CPU) PutAIntoOffsetImmediateAddress() {
 	address := cpu.offsetAddressFromImmediate()
-	cpu.putRegisterIntoMemory(registers.A, address)
+	cpu.putRegisterIntoMemory(RegisterA, address)
 }
 
 // PutNIntoR puts the value stored in the memory location referenced by the
 // program counter into register to.
-func (cpu *CPU) PutNIntoR(to registers.Register) {
+func (cpu *CPU) PutNIntoR(to Register) {
 	n := cpu.immediateByte()
 	t, _ := cpu.r.Auxiliary(to)
 	*t = n
@@ -115,14 +113,14 @@ func (cpu *CPU) PutNIntoR(to registers.Register) {
 // It then saves the contents of the memory at that address into register A.
 func (cpu *CPU) PutNNDereferenceIntoA() {
 	address := cpu.immediateWord()
-	cpu.putMemoryIntoRegister(address, registers.A)
+	cpu.putMemoryIntoRegister(address, RegisterA)
 }
 
 // PutOffsetCDereferenceIntoA puts the value stored in the offset memory
 // location resulting from the addition [C+0xFF00] into register A.
 func (cpu *CPU) PutOffsetCDereferenceIntoA() {
 	address := cpu.offsetAddressFromC()
-	cpu.putMemoryIntoRegister(address, registers.A)
+	cpu.putMemoryIntoRegister(address, RegisterA)
 }
 
 // PutOffsetImmediateDereferenceIntoA puts the value stored in the offset
@@ -130,41 +128,41 @@ func (cpu *CPU) PutOffsetCDereferenceIntoA() {
 // register A.
 func (cpu *CPU) PutOffsetImmediateDereferenceIntoA() {
 	address := cpu.offsetAddressFromImmediate()
-	cpu.putMemoryIntoRegister(address, registers.A)
+	cpu.putMemoryIntoRegister(address, RegisterA)
 }
 
 // PutBCDereferenceIntoA puts the value stored in the memory location referenced
 // by register BC into register A.
 func (cpu *CPU) PutBCDereferenceIntoA() {
-	cpu.putRegisterDereferenceIntoRegister(registers.BC, registers.A)
+	cpu.putRegisterDereferenceIntoRegister(RegisterBC, RegisterA)
 }
 
 // PutDEDereferenceIntoA puts the value stored in the memory location referenced
 // by register DE into register A.
 func (cpu *CPU) PutDEDereferenceIntoA() {
-	cpu.putRegisterDereferenceIntoRegister(registers.DE, registers.A)
+	cpu.putRegisterDereferenceIntoRegister(RegisterDE, RegisterA)
 }
 
 // PutHLDereferenceIntoR puts the value stored in the memory location referenced
 // by register HL into register r.
-func (cpu *CPU) PutHLDereferenceIntoR(to registers.Register) {
-	cpu.putRegisterDereferenceIntoRegister(registers.HL, to)
+func (cpu *CPU) PutHLDereferenceIntoR(to Register) {
+	cpu.putRegisterDereferenceIntoRegister(RegisterHL, to)
 }
 
 // PutHLDereferenceIntoAThenIncrementHL puts the value stored in the memory
 // location referenced by register HL into register A, then increments
 // register HL.
 func (cpu *CPU) PutHLDereferenceIntoAThenIncrementHL() {
-	cpu.PutHLDereferenceIntoR(registers.A)
-	cpu.incrementRegister(registers.HL)
+	cpu.PutHLDereferenceIntoR(RegisterA)
+	cpu.incrementRegister(RegisterHL)
 }
 
 // PutHLDereferenceIntoAThenDecrementHL puts the value stored in the memory
 // location referenced by register HL into register A, then increments
 // register HL.
 func (cpu *CPU) PutHLDereferenceIntoAThenDecrementHL() {
-	cpu.PutHLDereferenceIntoR(registers.A)
-	cpu.decrementRegister(registers.HL)
+	cpu.PutHLDereferenceIntoR(RegisterA)
+	cpu.decrementRegister(RegisterHL)
 }
 
 // PutNDereferenceIntoHLAddress puts the value stored in the memory location
@@ -172,7 +170,7 @@ func (cpu *CPU) PutHLDereferenceIntoAThenDecrementHL() {
 // HL register.
 func (cpu *CPU) PutNDereferenceIntoHLAddress() {
 	n := cpu.immediateByte()
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.m.SetByte(hl, n)
 }
 
@@ -182,7 +180,7 @@ func (cpu *CPU) PutNDereferenceIntoHLAddress() {
 
 // PutHLIntoSP puts the value stored in register HL into register SP.
 func (cpu *CPU) PutHLIntoSP() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	sp := cpu.r.StackPointer()
 	*sp = hl
 }
@@ -204,7 +202,7 @@ func (cpu *CPU) PushAFOntoStack() {
 }
 
 // PushRROntoStack pushes the contents of paired register from onto the stack.
-func (cpu *CPU) PushRROntoStack(from registers.Register) {
+func (cpu *CPU) PushRROntoStack(from Register) {
 	word, _ := cpu.r.Paired(from)
 	cpu.pushWordOntoStack(word)
 }
@@ -224,7 +222,7 @@ func (cpu *CPU) PutOffsetSPIntoHL() {
 	sp := cpu.r.StackPointer()
 	pc := cpu.r.ProgramCounter()
 	offset := cpu.add16S8(*sp, cpu.m.Byte(*pc))
-	cpu.r.SetPaired(registers.HL, offset)
+	cpu.r.SetPaired(RegisterHL, offset)
 }
 
 // Pops a word from the stack, then increments the stack pointer by 2.
@@ -244,7 +242,7 @@ func (cpu *CPU) PopStackIntoAF() {
 
 // PopStackIntoRR pops a word from the stack and puts it into the provided
 // register pair.
-func (cpu *CPU) PopStackIntoRR(to registers.Register) {
+func (cpu *CPU) PopStackIntoRR(to Register) {
 	cpu.r.SetPaired(to, cpu.popStack())
 }
 
@@ -252,7 +250,7 @@ func (cpu *CPU) PopStackIntoRR(to registers.Register) {
 // values that are stored in memory locations referenced by the program
 // counter and [PC+1].
 // It then saves that value into register to.
-func (cpu *CPU) PutNNIntoRR(to registers.Register) {
+func (cpu *CPU) PutNNIntoRR(to Register) {
 	val := cpu.immediateWord()
 	cpu.r.SetPaired(to, val)
 }
@@ -268,7 +266,7 @@ func (cpu *CPU) add8(x, y uint8, useCarry bool) (result uint8) {
 		halfCarryOut bool
 	)
 
-	if s, _ := cpu.r.IsFlagSet(uint8(flags.C)); s && useCarry {
+	if s, _ := cpu.r.IsFlagSet(FlagC); s && useCarry {
 		carryOut = (x >= 0xFF-y)
 		result = x + y + 1
 	} else {
@@ -279,17 +277,17 @@ func (cpu *CPU) add8(x, y uint8, useCarry bool) (result uint8) {
 	carryIns := result ^ x ^ y
 	halfCarryOut = (carryIns>>4)&1 == 1
 
-	cpu.r.PutFlag(uint8(flags.C), carryOut)
-	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+	cpu.r.PutFlag(FlagC, carryOut)
+	cpu.r.PutFlag(FlagH, halfCarryOut)
+	cpu.r.PutFlag(FlagZ, result == 0)
 
 	return result
 }
 
-func (cpu *CPU) add8Helper(y uint8, useCarry bool, f func(uint8) error) {
+func (cpu *CPU) add8Helper(y uint8, useCarry bool, f func(Flag) error) {
 	acc := cpu.r.Accumulator()
 	*acc = cpu.add8(*acc, y, useCarry)
-	f(uint8(flags.N))
+	f(FlagN)
 }
 
 // AddA adds the accumulator to itself, storing the result in the accumulator,
@@ -300,7 +298,7 @@ func (cpu *CPU) AddA() {
 
 // AddR adds the provided register to the accumulator, storing the result in the
 // accumulator, and updates the flags.
-func (cpu *CPU) AddR(r registers.Register) {
+func (cpu *CPU) AddR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.add8Helper(*a, false, cpu.r.ResetFlag)
 }
@@ -315,7 +313,7 @@ func (cpu *CPU) AddN() {
 // register HL to the accumulator, storing the result in the accumulator, and
 // updates the flags.
 func (cpu *CPU) AddHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.add8Helper(cpu.m.Byte(hl), false, cpu.r.ResetFlag)
 }
 
@@ -328,7 +326,7 @@ func (cpu *CPU) AdcA() {
 
 // AdcR adds the provided register and the contents of the carry flag to the
 // accumulator, storing the result in the accumulator, and updates the flags.
-func (cpu *CPU) AdcR(r registers.Register) {
+func (cpu *CPU) AdcR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.add8Helper(*a, true, cpu.r.ResetFlag)
 }
@@ -343,18 +341,18 @@ func (cpu *CPU) AdcN() {
 // register HL and the contents of the carry flag to the accumulator, storing
 // the result in the accumulator, and updates the flags.
 func (cpu *CPU) AdcHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.add8Helper(cpu.m.Byte(hl), true, cpu.r.ResetFlag)
 }
 
 // Adapted from: https://stackoverflow.com/a/8037485/1283818
-func (cpu *CPU) sub8Helper(y uint8, useCarry bool, f func(uint8) error) {
+func (cpu *CPU) sub8Helper(y uint8, useCarry bool, f func(Flag) error) {
 	// a - b - c = a + ^b + 1 - c = a + ^b + !c
 	// a - b = a + ^b + 1
 	y = ^y
 	if useCarry {
-		cpu.r.ToggleFlag(uint8(flags.C))
-		defer cpu.r.ToggleFlag(uint8(flags.C))
+		cpu.r.ToggleFlag(FlagC)
+		defer cpu.r.ToggleFlag(FlagC)
 	} else {
 		y++
 	}
@@ -370,7 +368,7 @@ func (cpu *CPU) SubA() {
 
 // SubR subtracts the provided register from the accumulator, storing the result
 // in the accumulator, and updates the flags.
-func (cpu *CPU) SubR(r registers.Register) {
+func (cpu *CPU) SubR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.sub8Helper(*a, false, cpu.r.SetFlag)
 }
@@ -385,7 +383,7 @@ func (cpu *CPU) SubN() {
 // by register HL from the accumulator, storing the result in the accumulator,
 // and updates the flags.
 func (cpu *CPU) SubHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.sub8Helper(cpu.m.Byte(hl), false, cpu.r.SetFlag)
 }
 
@@ -398,7 +396,7 @@ func (cpu *CPU) SbcA() {
 // SbcR subtracts the provided register and the contents of the carry flag from
 // the accumulator, storing the result in the accumulator, and updates the
 // flags.
-func (cpu *CPU) SbcR(r registers.Register) {
+func (cpu *CPU) SbcR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.sub8Helper(*a, true, cpu.r.SetFlag)
 }
@@ -413,7 +411,7 @@ func (cpu *CPU) SbcN() {
 // by register HL and the contents of the carry flag from the accumulator,
 // storing the result in the accumulator, and updates the flags.
 func (cpu *CPU) SbcHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.sub8Helper(cpu.m.Byte(hl), true, cpu.r.SetFlag)
 }
 
@@ -425,10 +423,10 @@ func (cpu *CPU) bitwise8Helper(y uint8, f func(uint8, uint8) uint8) {
 func (cpu *CPU) and8(x, y uint8) (result uint8) {
 	result = x & y
 
-	cpu.r.ResetFlag(uint8(flags.C))
-	cpu.r.SetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+	cpu.r.ResetFlag(FlagC)
+	cpu.r.SetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, result == 0)
 
 	return result
 }
@@ -443,7 +441,7 @@ func (cpu *CPU) AndA() {
 // AndR performs bitwise AND between the contents of the accumulator and the
 // provided register, storing the result in the accumulator. It also updates the
 // flags.
-func (cpu *CPU) AndR(r registers.Register) {
+func (cpu *CPU) AndR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.and8)
 }
@@ -459,17 +457,17 @@ func (cpu *CPU) AndN() {
 // and the value stored in the memory location referenced by register HL,
 // storing the result in the accumulator. It also updates the flags.
 func (cpu *CPU) AndHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.and8)
 }
 
 func (cpu *CPU) xor8(x, y uint8) (result uint8) {
 	result = x ^ y
 
-	cpu.r.ResetFlag(uint8(flags.C))
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+	cpu.r.ResetFlag(FlagC)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, result == 0)
 
 	return result
 }
@@ -484,7 +482,7 @@ func (cpu *CPU) XorA() {
 // XorR performs bitwise XOR between the contents of the accumulator and the
 // provided register, storing the result in the accumulator. It also updates the
 // flags.
-func (cpu *CPU) XorR(r registers.Register) {
+func (cpu *CPU) XorR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.xor8)
 }
@@ -500,17 +498,17 @@ func (cpu *CPU) XorN() {
 // and the value stored in the memory location referenced by register HL,
 // storing the result in the accumulator. It also updates the flags.
 func (cpu *CPU) XorHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.xor8)
 }
 
 func (cpu *CPU) or8(x, y uint8) (result uint8) {
 	result = x | y
 
-	cpu.r.ResetFlag(uint8(flags.C))
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+	cpu.r.ResetFlag(FlagC)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, result == 0)
 
 	return result
 }
@@ -525,7 +523,7 @@ func (cpu *CPU) OrA() {
 // OrR performs bitwise OR between the contents of the accumulator and the
 // provided register, storing the result in the accumulator. It also updates the
 // flags.
-func (cpu *CPU) OrR(r registers.Register) {
+func (cpu *CPU) OrR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.or8)
 }
@@ -541,7 +539,7 @@ func (cpu *CPU) OrN() {
 // and the value stored in the memory location referenced by register HL,
 // storing the result in the accumulator. It also updates the flags.
 func (cpu *CPU) OrHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.or8)
 }
 
@@ -549,7 +547,7 @@ func (cpu *CPU) OrHLDereference() {
 func (cpu *CPU) compare8Helper(y uint8) {
 	acc := cpu.r.Accumulator()
 	cpu.add8(*acc, ^y+1, false)
-	cpu.r.SetFlag(uint8(flags.N))
+	cpu.r.SetFlag(FlagN)
 }
 
 // CompareA subtracts the accumulator from itself, discarding the result, and
@@ -560,7 +558,7 @@ func (cpu *CPU) CompareA() {
 
 // CompareR subtracts the provided register from the accumulator, discarding the
 // result, and updates the flags.
-func (cpu *CPU) CompareR(r registers.Register) {
+func (cpu *CPU) CompareR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.compare8Helper(*a)
 }
@@ -575,7 +573,7 @@ func (cpu *CPU) CompareN() {
 // by register HL from the accumulator, discarding the result, and updates the
 // flags.
 func (cpu *CPU) CompareHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.compare8Helper(cpu.m.Byte(hl))
 }
 
@@ -584,15 +582,15 @@ func (cpu *CPU) increment8(x, by uint8) (result uint8) {
 	carryIns := result ^ x ^ by
 	halfCarryOut := (carryIns>>4)&1 == 1
 
-	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
-	cpu.r.PutFlag(uint8(flags.Z), result == 0)
+	cpu.r.PutFlag(FlagH, halfCarryOut)
+	cpu.r.PutFlag(FlagZ, result == 0)
 
 	return result
 }
 
 func (cpu *CPU) increment8Helper(x *uint8) {
 	*x = cpu.increment8(*x, 1)
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(FlagN)
 }
 
 // IncrementA increments the accumulator register by 1, and updates the flags.
@@ -602,7 +600,7 @@ func (cpu *CPU) IncrementA() {
 }
 
 // IncrementR increments the provided register by 1, and updates the flags.
-func (cpu *CPU) IncrementR(r registers.Register) {
+func (cpu *CPU) IncrementR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.increment8Helper(a)
 }
@@ -610,7 +608,7 @@ func (cpu *CPU) IncrementR(r registers.Register) {
 // IncrementHLDereference increments the memory contents referenced by register
 // HL by 1, and updates the flags.
 func (cpu *CPU) IncrementHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.increment8Helper(&val)
 	cpu.m.SetByte(hl, val)
@@ -620,7 +618,7 @@ func (cpu *CPU) decrement8Helper(x *uint8) {
 	by := uint8(1)
 	by = ^by + 1
 	*x = cpu.increment8(*x, by)
-	cpu.r.SetFlag(uint8(flags.N))
+	cpu.r.SetFlag(FlagN)
 }
 
 // DecrementA decrements the accumulator register by 1, and updates the flags.
@@ -630,7 +628,7 @@ func (cpu *CPU) DecrementA() {
 }
 
 // DecrementR decrements the provided register by 1, and updates the flags.
-func (cpu *CPU) DecrementR(r registers.Register) {
+func (cpu *CPU) DecrementR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.decrement8Helper(a)
 }
@@ -638,7 +636,7 @@ func (cpu *CPU) DecrementR(r registers.Register) {
 // DecrementHLDereference decrements the memory contents referenced by register
 // HL by 1, and updates the flags.
 func (cpu *CPU) DecrementHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.decrement8Helper(&val)
 	cpu.m.SetByte(hl, val)
@@ -657,27 +655,27 @@ func (cpu *CPU) DecrementHLDereference() {
 func (cpu *CPU) DecimalAdjustA() {
 	acc := cpu.r.Accumulator()
 
-	if n, _ := cpu.r.IsFlagSet(uint8(flags.N)); !n {
-		if c, _ := cpu.r.IsFlagSet(uint8(flags.C)); c || *acc > 0x99 {
+	if n, _ := cpu.r.IsFlagSet(FlagN); !n {
+		if c, _ := cpu.r.IsFlagSet(FlagC); c || *acc > 0x99 {
 			*acc += 0x60
-			cpu.r.SetFlag(uint8(flags.C))
+			cpu.r.SetFlag(FlagC)
 		}
 
-		if h, _ := cpu.r.IsFlagSet(uint8(flags.H)); h || (*acc&0x0F) > 0x09 {
+		if h, _ := cpu.r.IsFlagSet(FlagH); h || (*acc&0x0F) > 0x09 {
 			*acc += 0x06
 		}
 	} else {
-		if c, _ := cpu.r.IsFlagSet(uint8(flags.C)); c {
+		if c, _ := cpu.r.IsFlagSet(FlagC); c {
 			*acc -= 0x60
 		}
 
-		if h, _ := cpu.r.IsFlagSet(uint8(flags.H)); h {
+		if h, _ := cpu.r.IsFlagSet(FlagH); h {
 			*acc -= 0x06
 		}
 	}
 
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.PutFlag(uint8(flags.Z), *acc == 0)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.PutFlag(FlagZ, *acc == 0)
 }
 
 // ComplementA sets the accumulator to the one's complement of itself, and
@@ -686,24 +684,24 @@ func (cpu *CPU) ComplementA() {
 	acc := cpu.r.Accumulator()
 	*acc = ^*acc
 
-	cpu.r.SetFlag(uint8(flags.H))
-	cpu.r.SetFlag(uint8(flags.N))
+	cpu.r.SetFlag(FlagH)
+	cpu.r.SetFlag(FlagN)
 }
 
 // ComplementCarryFlag toggles the carry flag, and updates the flags.
 func (cpu *CPU) ComplementCarryFlag() {
-	cpu.r.ToggleFlag(uint8(flags.C))
+	cpu.r.ToggleFlag(FlagC)
 
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
 }
 
 // SetCarryFlag sets the carry flag, and updates the flags.
 func (cpu *CPU) SetCarryFlag() {
-	cpu.r.SetFlag(uint8(flags.C))
+	cpu.r.SetFlag(FlagC)
 
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
 }
 
 /**
@@ -723,21 +721,21 @@ func (cpu *CPU) add16(x, y uint16) (result uint16) {
 	carryIns := result ^ x ^ y
 	halfCarryOut = (carryIns>>12)&1 == 1
 
-	cpu.r.PutFlag(uint8(flags.C), carryOut)
-	cpu.r.PutFlag(uint8(flags.H), halfCarryOut)
-	cpu.r.ResetFlag(uint8(flags.N))
+	cpu.r.PutFlag(FlagC, carryOut)
+	cpu.r.PutFlag(FlagH, halfCarryOut)
+	cpu.r.ResetFlag(FlagN)
 
 	return result
 }
 
 func (cpu *CPU) add16Helper(y uint16) {
-	hl, _ := cpu.r.Paired(registers.HL)
-	cpu.r.SetPaired(registers.HL, cpu.add16(hl, y))
+	hl, _ := cpu.r.Paired(RegisterHL)
+	cpu.r.SetPaired(RegisterHL, cpu.add16(hl, y))
 }
 
 // AddRR adds the provided register to register HL, storing the result in
 // register HL, and updates the flags.
-func (cpu *CPU) AddRR(rr registers.Register) {
+func (cpu *CPU) AddRR(rr Register) {
 	pr, _ := cpu.r.Paired(rr)
 	cpu.add16Helper(pr)
 }
@@ -750,7 +748,7 @@ func (cpu *CPU) AddSP() {
 }
 
 // IncrementRR increments the provided register by 1.
-func (cpu *CPU) IncrementRR(rr registers.Register) {
+func (cpu *CPU) IncrementRR(rr Register) {
 	cpu.r.IncrementPaired(rr)
 }
 
@@ -761,7 +759,7 @@ func (cpu *CPU) IncrementSP() {
 }
 
 // DecrementRR decrements the provided register by 1.
-func (cpu *CPU) DecrementRR(rr registers.Register) {
+func (cpu *CPU) DecrementRR(rr Register) {
 	cpu.r.DecrementPaired(rr)
 }
 
@@ -783,7 +781,7 @@ func (cpu *CPU) add16S8(x uint16, y uint8) (result uint16) {
 	}
 
 	result = cpu.add16(x, yy)
-	cpu.r.ResetFlag(uint8(flags.Z))
+	cpu.r.ResetFlag(FlagZ)
 
 	return result
 }
@@ -802,15 +800,15 @@ func (cpu *CPU) AddOffsetImmediateToSP() {
  * Jumps / calls
  */
 
-func (cpu *CPU) shouldJump(flag flags.Flag, isSet bool) bool {
-	fs, _ := cpu.r.IsFlagSet(uint8(flag))
+func (cpu *CPU) shouldJump(flag Flag, isSet bool) bool {
+	fs, _ := cpu.r.IsFlagSet(flag)
 	return fs == isSet
 }
 
 // JumpHL sets the program counter to be equal to the contents of register HL.
 func (cpu *CPU) JumpHL() {
 	pc := cpu.r.ProgramCounter()
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	*pc = hl
 }
 
@@ -827,7 +825,7 @@ func (cpu *CPU) JumpOffset() {
 // program counter to the immediate byte, with the immediate byte being treated
 // as a signed integer in the range [-128, 127]. The condition is that the
 // status of the provided flag must match the provided status.
-func (cpu *CPU) JumpOffsetConditionally(flag flags.Flag, isSet bool) {
+func (cpu *CPU) JumpOffsetConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.JumpOffset()
 	}
@@ -843,7 +841,7 @@ func (cpu *CPU) JumpNN() {
 
 // JumpNNConditionally sets the program counter to the immediate word if the
 // status of the provided flag matches the provided status.
-func (cpu *CPU) JumpNNConditionally(flag flags.Flag, isSet bool) {
+func (cpu *CPU) JumpNNConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.JumpNN()
 	}
@@ -860,7 +858,7 @@ func (cpu *CPU) CallNN() {
 // CallNNConditionally pushes the program counter onto the stack, then sets the
 // program counter to the immediate word. The condition is that the status of
 // the provided flag must match the provided status.
-func (cpu *CPU) CallNNConditionally(flag flags.Flag, isSet bool) {
+func (cpu *CPU) CallNNConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.CallNN()
 	}
@@ -874,7 +872,7 @@ func (cpu *CPU) Return() {
 
 // ReturnConditionally pops a word from the stack and puts it into the program
 // counter if the status of the provided flag matches the provided status.
-func (cpu *CPU) ReturnConditionally(flag flags.Flag, isSet bool) {
+func (cpu *CPU) ReturnConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.Return()
 	}
@@ -915,7 +913,7 @@ func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
 	var rotatedBitset bool
 	*x, rotatedBitset = rotate8(*x, right)
 
-	carry, _ := cpu.r.IsFlagSet(uint8(flags.C))
+	carry, _ := cpu.r.IsFlagSet(FlagC)
 	if carry {
 		if right {
 			*x |= 0x80
@@ -924,20 +922,20 @@ func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
 		}
 	}
 
-	cpu.r.PutFlag(uint8(flags.C), rotatedBitset)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+	cpu.r.PutFlag(FlagC, rotatedBitset)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, *x == 0)
 }
 
 func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
 	var rotatedBitset bool
 	*x, rotatedBitset = rotate8(*x, right)
 
-	cpu.r.PutFlag(uint8(flags.C), rotatedBitset)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+	cpu.r.PutFlag(FlagC, rotatedBitset)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, *x == 0)
 }
 
 // RLCA rotates the contents of the accumulator to the left. The MSB becomes the
@@ -945,7 +943,7 @@ func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
 func (cpu *CPU) RLCA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8BothHelper(acc, false)
-	cpu.r.ResetFlag(uint8(flags.Z))
+	cpu.r.ResetFlag(FlagZ)
 }
 
 // RLA rotates the contents of the accumulator to the left. The MSB becomes the
@@ -953,7 +951,7 @@ func (cpu *CPU) RLCA() {
 func (cpu *CPU) RLA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8SwapHelper(acc, false)
-	cpu.r.ResetFlag(uint8(flags.Z))
+	cpu.r.ResetFlag(FlagZ)
 }
 
 // RRCA rotates the contents of the accumulator to the right. The LSB becomes
@@ -961,7 +959,7 @@ func (cpu *CPU) RLA() {
 func (cpu *CPU) RRCA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8BothHelper(acc, true)
-	cpu.r.ResetFlag(uint8(flags.Z))
+	cpu.r.ResetFlag(FlagZ)
 }
 
 // RRA rotates the contents of the accumulator to the right. The LSB becomes the
@@ -969,7 +967,7 @@ func (cpu *CPU) RRCA() {
 func (cpu *CPU) RRA() {
 	acc := cpu.r.Accumulator()
 	cpu.rotate8SwapHelper(acc, true)
-	cpu.r.ResetFlag(uint8(flags.Z))
+	cpu.r.ResetFlag(FlagZ)
 }
 
 // RLCACB rotates the contents of the accumulator to the left. The MSB becomes
@@ -981,7 +979,7 @@ func (cpu *CPU) RLCACB() {
 
 // RLC rotates the contents of the provided register to the left. The MSB
 // becomes the LSB and the carry flag. Flags are updated accordingly.
-func (cpu *CPU) RLC(r registers.Register) {
+func (cpu *CPU) RLC(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.rotate8BothHelper(a, false)
 }
@@ -990,7 +988,7 @@ func (cpu *CPU) RLC(r registers.Register) {
 // register HL to the left. The MSB becomes the the LSB and the carry flag.
 // Flags are updated accordingly.
 func (cpu *CPU) RLCHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.rotate8BothHelper(&val, false)
 	cpu.m.SetByte(hl, val)
@@ -1005,7 +1003,7 @@ func (cpu *CPU) RRCACB() {
 
 // RRC rotates the contents of the provided register to the right. The LSB
 // becomes the MSB and the carry flag. Flags are updated accordingly.
-func (cpu *CPU) RRC(r registers.Register) {
+func (cpu *CPU) RRC(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.rotate8BothHelper(a, true)
 }
@@ -1014,7 +1012,7 @@ func (cpu *CPU) RRC(r registers.Register) {
 // register HL to the right. The LSB becomes the the MSB and the carry flag.
 // Flags are updated accordingly.
 func (cpu *CPU) RRCHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.rotate8BothHelper(&val, true)
 	cpu.m.SetByte(hl, val)
@@ -1031,7 +1029,7 @@ func (cpu *CPU) RLACB() {
 // RL rotates the contents of the provided register to the left. The MSB becomes
 // the carry flag and the carry flag becomes the LSB. Flags are updated
 // accordingly.
-func (cpu *CPU) RL(r registers.Register) {
+func (cpu *CPU) RL(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.rotate8SwapHelper(a, false)
 }
@@ -1040,7 +1038,7 @@ func (cpu *CPU) RL(r registers.Register) {
 // register HL to the left. The MSB becomes the carry flag and the carry flag
 // becomes the LSB. Flags are updated accordingly.
 func (cpu *CPU) RLHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.rotate8SwapHelper(&val, false)
 	cpu.m.SetByte(hl, val)
@@ -1057,7 +1055,7 @@ func (cpu *CPU) RRACB() {
 // RR rotates the contents of the provided register to the right. The LSB
 // becomes the carry flag and the carry flag becomes the MSB. Flags are updated
 // accordingly.
-func (cpu *CPU) RR(r registers.Register) {
+func (cpu *CPU) RR(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.rotate8SwapHelper(a, true)
 }
@@ -1066,7 +1064,7 @@ func (cpu *CPU) RR(r registers.Register) {
 // register HL to the right. The LSB becomes the carry flag and the carry flag
 // becomes the MSB. Flags are updated accordingly.
 func (cpu *CPU) RRHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.rotate8SwapHelper(&val, true)
 	cpu.m.SetByte(hl, val)
@@ -1088,10 +1086,10 @@ func (cpu *CPU) shift8Helper(x *uint8, right bool) {
 	var shiftedBitSet bool
 	*x, shiftedBitSet = shift8(*x, right)
 
-	cpu.r.PutFlag(uint8(flags.C), shiftedBitSet)
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+	cpu.r.PutFlag(FlagC, shiftedBitSet)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, *x == 0)
 }
 
 // SLAA shifts the contents of the accumulator to the left. The MSB becomes the
@@ -1103,7 +1101,7 @@ func (cpu *CPU) SLAA() {
 
 // SLA shifts the contents of the provided register to the left. The MSB becomes
 // the carry flag and the LSB is reset. Flags are updated accordingly.
-func (cpu *CPU) SLA(r registers.Register) {
+func (cpu *CPU) SLA(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.shift8Helper(a, false)
 }
@@ -1112,7 +1110,7 @@ func (cpu *CPU) SLA(r registers.Register) {
 // register HL to the left. The MSB becomes the carry flag and the LSB is reset.
 // Flags are updated accordingly.
 func (cpu *CPU) SLAHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.shift8Helper(&val, false)
 	cpu.m.SetByte(hl, val)
@@ -1130,7 +1128,7 @@ func (cpu *CPU) SRAA() {
 // SRA shifts the contents of the provided register to the right. The LSB
 // becomes the carry flag and the MSB retains its value. Flags are updated
 // accordingly.
-func (cpu *CPU) SRA(r registers.Register) {
+func (cpu *CPU) SRA(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	bit7mask := *a & 0x80
 	cpu.shift8Helper(a, true)
@@ -1141,7 +1139,7 @@ func (cpu *CPU) SRA(r registers.Register) {
 // register HL to the right. The LSB becomes the carry flag and the MSB retains
 // its value. Flags are updated accordingly.
 func (cpu *CPU) SRAHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	bit7mask := val & 0x80
 	cpu.shift8Helper(&val, true)
@@ -1158,7 +1156,7 @@ func (cpu *CPU) SRLA() {
 
 // SRL shifts the contents of the provided register to the right. The LSB
 // becomes the carry flag and the MSB is reset. Flags are updated accordingly.
-func (cpu *CPU) SRL(r registers.Register) {
+func (cpu *CPU) SRL(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.shift8Helper(a, true)
 }
@@ -1167,7 +1165,7 @@ func (cpu *CPU) SRL(r registers.Register) {
 // register HL to the right. The LSB becomes the carry flag and the MSB is
 // reset. Flags are updated accordingly.
 func (cpu *CPU) SRLHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.shift8Helper(&val, true)
 	cpu.m.SetByte(hl, val)
@@ -1180,10 +1178,10 @@ func swap8(x uint8) uint8 {
 func (cpu *CPU) swap8Helper(x *uint8) {
 	*x = swap8(*x)
 
-	cpu.r.ResetFlag(uint8(flags.C))
-	cpu.r.ResetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), *x == 0)
+	cpu.r.ResetFlag(FlagC)
+	cpu.r.ResetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, *x == 0)
 }
 
 // SwapA swaps the accumulator nibbles. Flags are updated accordingly.
@@ -1193,7 +1191,7 @@ func (cpu *CPU) SwapA() {
 }
 
 // Swap swaps the provided register's nibbles. Flags are updated accordingly.
-func (cpu *CPU) Swap(r registers.Register) {
+func (cpu *CPU) Swap(r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.swap8Helper(a)
 }
@@ -1201,7 +1199,7 @@ func (cpu *CPU) Swap(r registers.Register) {
 // SwapHLDereference swaps the nibbles of the contents of the memory location
 // referenced by register HL. Flags are updated accordingly.
 func (cpu *CPU) SwapHLDereference() {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.swap8Helper(&val)
 	cpu.m.SetByte(hl, val)
@@ -1210,9 +1208,9 @@ func (cpu *CPU) SwapHLDereference() {
 func (cpu *CPU) bit8(x, b uint8) {
 	isSet := (x>>b)&0x01 == 1
 
-	cpu.r.SetFlag(uint8(flags.H))
-	cpu.r.ResetFlag(uint8(flags.N))
-	cpu.r.PutFlag(uint8(flags.Z), !isSet)
+	cpu.r.SetFlag(FlagH)
+	cpu.r.ResetFlag(FlagN)
+	cpu.r.PutFlag(FlagZ, !isSet)
 }
 
 // BitA sets the Z flag to the complement of the contents of the provided bit in
@@ -1224,7 +1222,7 @@ func (cpu *CPU) BitA(b uint8) {
 
 // Bit sets the Z flag to the complement of the contents of the provided bit in
 // the provided register. The H and N flags are set and reset respectively.
-func (cpu *CPU) Bit(b uint8, r registers.Register) {
+func (cpu *CPU) Bit(b uint8, r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bit8(*a, b)
 }
@@ -1233,7 +1231,7 @@ func (cpu *CPU) Bit(b uint8, r registers.Register) {
 // provided bit in the contents of the memory location referenced by register
 // HL. The H and N flags are set and reset respectively.
 func (cpu *CPU) BitHLDereference(b uint8) {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.bit8(val, b)
 }
@@ -1249,7 +1247,7 @@ func (cpu *CPU) ResetA(b uint8) {
 }
 
 // Reset resets the provided bit in the provided register.
-func (cpu *CPU) Reset(b uint8, r registers.Register) {
+func (cpu *CPU) Reset(b uint8, r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.reset8(a, b)
 }
@@ -1257,7 +1255,7 @@ func (cpu *CPU) Reset(b uint8, r registers.Register) {
 // ResetHLDereference resets the provided bit in the contents of the memory
 // location referenced by register HL.
 func (cpu *CPU) ResetHLDereference(b uint8) {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.reset8(&val, b)
 	cpu.m.SetByte(hl, val)
@@ -1274,7 +1272,7 @@ func (cpu *CPU) SetA(b uint8) {
 }
 
 // Set sets the provided bit in the provided register.
-func (cpu *CPU) Set(b uint8, r registers.Register) {
+func (cpu *CPU) Set(b uint8, r Register) {
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.set8(a, b)
 }
@@ -1282,7 +1280,7 @@ func (cpu *CPU) Set(b uint8, r registers.Register) {
 // SetHLDereference sets the provided bit in the contents of the memory location
 // referenced by register HL.
 func (cpu *CPU) SetHLDereference(b uint8) {
-	hl, _ := cpu.r.Paired(registers.HL)
+	hl, _ := cpu.r.Paired(RegisterHL)
 	val := cpu.m.Byte(hl)
 	cpu.set8(&val, b)
 	cpu.m.SetByte(hl, val)
@@ -1292,34 +1290,34 @@ func (cpu *CPU) SetHLDereference(b uint8) {
  * Common operations
  */
 
-func (cpu *CPU) putRegisterIntoAddressInRegister(ar, vr registers.Register) {
+func (cpu *CPU) putRegisterIntoAddressInRegister(ar, vr Register) {
 	address, _ := cpu.r.Paired(ar)
 	cpu.putRegisterIntoMemory(vr, address)
 }
 
-func (cpu *CPU) putRegisterDereferenceIntoRegister(fr, tr registers.Register) {
+func (cpu *CPU) putRegisterDereferenceIntoRegister(fr, tr Register) {
 	address, _ := cpu.r.Paired(fr)
 	val := cpu.m.Byte(address)
 	t, _ := cpu.r.Auxiliary(tr)
 	*t = val
 }
 
-func (cpu *CPU) putRegisterIntoMemory(r registers.Register, address uint16) {
+func (cpu *CPU) putRegisterIntoMemory(r Register, address uint16) {
 	v, _ := cpu.r.Auxiliary(r)
 	cpu.m.SetByte(address, *v)
 }
 
-func (cpu *CPU) putMemoryIntoRegister(address uint16, r registers.Register) {
+func (cpu *CPU) putMemoryIntoRegister(address uint16, r Register) {
 	val := cpu.m.Byte(address)
 	t, _ := cpu.r.Auxiliary(r)
 	*t = val
 }
 
-func (cpu *CPU) incrementRegister(r registers.Register) {
+func (cpu *CPU) incrementRegister(r Register) {
 	cpu.r.IncrementPaired(r)
 }
 
-func (cpu *CPU) decrementRegister(r registers.Register) {
+func (cpu *CPU) decrementRegister(r Register) {
 	cpu.r.DecrementPaired(r)
 }
 
@@ -1338,7 +1336,7 @@ func (cpu *CPU) offsetAddressFromImmediate() uint16 {
 }
 
 func (cpu *CPU) offsetAddressFromC() uint16 {
-	c, _ := cpu.r.Auxiliary(registers.C)
+	c, _ := cpu.r.Auxiliary(RegisterC)
 	return cpu.offsetAddress(uint16(*c))
 }
 

@@ -1,4 +1,4 @@
-package flags
+package cpu
 
 import (
 	"errors"
@@ -7,34 +7,17 @@ import (
 
 var errUnknownFlag = errors.New("unknown flag")
 
-// Flag is the type for our individual flags enumeration.
-type Flag uint8
-
-func (flag Flag) String() string {
-	switch flag {
-	case 4:
-		return "C"
-	case 5:
-		return "H"
-	case 6:
-		return "N"
-	case 7:
-		return "Z"
-	default:
-		return "?"
-	}
+// FlagBearer is the interface that wraps the functionality that must be
+// provided by an implementation of an 8-bit flags register.
+type FlagBearer interface {
+	IsSet(Flag) (bool, error)
+	Put(Flag, bool) error
+	Reset(Flag) error
+	Set(Flag) error
+	Toggle(Flag) error
+	Value() uint8
+	SetValue(uint8)
 }
-
-// Enumerates individual flags in the flags register.
-//
-// Bits 0-3 are unused. Starting the enumeration of the used flags from 4
-// makes it easy to pass this same enum when shifting.
-const (
-	C Flag = iota + 4
-	H
-	N
-	Z
-)
 
 // Flags is an 8-bit register.
 type Flags uint8
@@ -42,8 +25,8 @@ type Flags uint8
 // Bitmask used for shifting operations when manipulating flags.
 const bitmask Flags = 1
 
-// New returns a new 8-bit flags register.
-func New() *Flags {
+// NewFlags returns a new 8-bit flags register.
+func NewFlags() *Flags {
 	return new(Flags)
 }
 
@@ -51,7 +34,7 @@ func New() *Flags {
 // if encountered.
 func (flags *Flags) get(f Flag) (ret uint8, err error) {
 	switch f {
-	case C, H, N, Z:
+	case FlagC, FlagH, FlagN, FlagZ:
 		ret = uint8((*flags >> f) & bitmask)
 	default:
 		err = errUnknownFlag
@@ -62,14 +45,14 @@ func (flags *Flags) get(f Flag) (ret uint8, err error) {
 
 // IsSet returns true if flag f is set and false otherwise. An errUnknownFlag
 // error is returned, if encountered.
-func (flags *Flags) IsSet(f uint8) (bool, error) {
-	ret, err := flags.get(Flag(f))
+func (flags *Flags) IsSet(f Flag) (bool, error) {
+	ret, err := flags.get(f)
 	return ret == 1, err
 }
 
 // Put sets flag f if set is true, and resets it otherwise. An error is
 // returned, if encountered.
-func (flags *Flags) Put(f uint8, set bool) error {
+func (flags *Flags) Put(f Flag, set bool) error {
 	if set {
 		return flags.Set(f)
 	}
@@ -79,9 +62,9 @@ func (flags *Flags) Put(f uint8, set bool) error {
 
 // Reset resets flag f. flags is modified in place. An errUnknownFlag error is
 // returned, if encountered.
-func (flags *Flags) Reset(f uint8) (err error) {
-	switch Flag(f) {
-	case C, H, N, Z:
+func (flags *Flags) Reset(f Flag) (err error) {
+	switch f {
+	case FlagC, FlagH, FlagN, FlagZ:
 		*flags = *flags &^ Flags(bitmask<<f)
 	default:
 		err = errUnknownFlag
@@ -92,10 +75,10 @@ func (flags *Flags) Reset(f uint8) (err error) {
 
 // Set sets flag f. flags is modified in place. An errUnknownFlag error is
 // returned, if encountered.
-func (flags *Flags) Set(f uint8) (err error) {
+func (flags *Flags) Set(f Flag) (err error) {
 	switch Flag(f) {
-	case C, H, N, Z:
-		*flags = *flags | Flags(bitmask<<f)
+	case FlagC, FlagH, FlagN, FlagZ:
+		*flags = *flags | (bitmask << f)
 	default:
 		err = errUnknownFlag
 	}
@@ -105,10 +88,10 @@ func (flags *Flags) Set(f uint8) (err error) {
 
 // Toggle toggles flag f. flags is modified in place. An errUnknownFlag error is
 // returned, if encountered.
-func (flags *Flags) Toggle(f uint8) (err error) {
+func (flags *Flags) Toggle(f Flag) (err error) {
 	switch Flag(f) {
-	case C, H, N, Z:
-		*flags = *flags ^ Flags(bitmask<<f)
+	case FlagC, FlagH, FlagN, FlagZ:
+		*flags = *flags ^ (bitmask << f)
 	default:
 		err = errUnknownFlag
 	}
@@ -127,9 +110,9 @@ func (flags *Flags) SetValue(val uint8) {
 }
 
 func (flags *Flags) String() string {
-	z, _ := flags.get(Z)
-	n, _ := flags.get(N)
-	h, _ := flags.get(H)
-	c, _ := flags.get(C)
-	return fmt.Sprintf("%s:%d %s:%d %s:%d %s:%d", Z, z, N, n, H, h, C, c)
+	c, _ := flags.get(FlagC)
+	h, _ := flags.get(FlagH)
+	n, _ := flags.get(FlagN)
+	z, _ := flags.get(FlagZ)
+	return fmt.Sprintf("%s:%d %s:%d %s:%d %s:%d", FlagZ, z, FlagN, n, FlagH, h, FlagC, c)
 }

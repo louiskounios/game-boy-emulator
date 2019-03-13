@@ -1,14 +1,12 @@
-package registers_test
+package cpu
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/loizoskounios/game-boy-emulator/cpu/registers"
 )
 
 func TestAccumulator(t *testing.T) {
-	r := registers.New()
+	r := NewRegisters()
 	acc := r.Accumulator()
 
 	if acc == nil {
@@ -26,7 +24,7 @@ func TestAccumulator(t *testing.T) {
 }
 
 func TestStackPointer(t *testing.T) {
-	r := registers.New()
+	r := NewRegisters()
 	sp := r.StackPointer()
 
 	if sp == nil {
@@ -44,7 +42,7 @@ func TestStackPointer(t *testing.T) {
 }
 
 func TestProgramCounter(t *testing.T) {
-	r := registers.New()
+	r := NewRegisters()
 	pc := r.ProgramCounter()
 
 	if pc == nil {
@@ -63,20 +61,20 @@ func TestProgramCounter(t *testing.T) {
 
 func TestAuxiliary(t *testing.T) {
 	testCases := []struct {
-		register registers.Register
+		register Register
 		value    uint8
 		expected uint8
 	}{
-		{registers.A, 255, 255},
-		{registers.B, 255, 255},
-		{registers.C, 255, 255},
-		{registers.D, 255, 255},
-		{registers.E, 255, 255},
-		{registers.H, 255, 255},
-		{registers.L, 255, 255},
+		{RegisterA, 255, 255},
+		{RegisterB, 255, 255},
+		{RegisterC, 255, 255},
+		{RegisterD, 255, 255},
+		{RegisterE, 255, 255},
+		{RegisterH, 255, 255},
+		{RegisterL, 255, 255},
 	}
 
-	r := registers.New()
+	r := NewRegisters()
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("register=%s value=%d", tc.register, tc.value), func(t *testing.T) {
 			aux, _ := r.Auxiliary(tc.register)
@@ -99,15 +97,15 @@ func TestAuxiliary(t *testing.T) {
 
 func TestPaired(t *testing.T) {
 	testCases := []struct {
-		register registers.Register
+		register Register
 		expected uint16
 	}{
-		{registers.BC, 0},
-		{registers.DE, 0},
-		{registers.HL, 0},
+		{RegisterBC, 0},
+		{RegisterDE, 0},
+		{RegisterHL, 0},
 	}
 
-	r := registers.New()
+	r := NewRegisters()
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("register=%s", tc.register), func(t *testing.T) {
 			if output, _ := r.Paired(tc.register); output != tc.expected {
@@ -119,16 +117,16 @@ func TestPaired(t *testing.T) {
 
 func TestSetPaired(t *testing.T) {
 	testCases := []struct {
-		register registers.Register
+		register Register
 		value    uint16
 		expected uint16
 	}{
-		{registers.BC, 65535, 65535},
-		{registers.DE, 65535, 65535},
-		{registers.HL, 65535, 65535},
+		{RegisterBC, 65535, 65535},
+		{RegisterDE, 65535, 65535},
+		{RegisterHL, 65535, 65535},
 	}
 
-	r := registers.New()
+	r := NewRegisters()
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("register=%s value=%d", tc.register, tc.value), func(t *testing.T) {
 			r.SetPaired(tc.register, tc.value)
