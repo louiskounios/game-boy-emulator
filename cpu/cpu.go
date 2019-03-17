@@ -387,9 +387,9 @@ func (cpu *CPU) PopStackIntoRR(to Register) {
 	cpu.c.AddT(1)
 }
 
-// LoadOffsetSPIntoHL loads the result of adding the stack pointer register and
-// 8-bit operand together, with the operand being treated as a signed integer,
-// into register HL. Flags are updated accordingly.
+// LoadOffsetSPIntoHL loads the result of the addition of the stack pointer and
+// the 8-bit operand, with the operand being treated as a signed integer in
+// the range [-128, 127], into register HL. Flags are updated accordingly.
 func (cpu *CPU) LoadOffsetSPIntoHL() {
 	cpu.r.IncrementProgramCounter(1)
 
@@ -986,6 +986,8 @@ func (cpu *CPU) add16(x, y uint16) (result uint16) {
 	cpu.r.PutFlag(FlagH, halfCarryOut)
 	cpu.r.ResetFlag(FlagN)
 
+	cpu.c.AddT(2)
+
 	return result
 }
 
@@ -995,39 +997,59 @@ func (cpu *CPU) add16Helper(y uint16) {
 }
 
 // AddRR adds the provided register to register HL, storing the result in
-// register HL, and updates the flags.
+// register HL. Flags are updated accordingly.
 func (cpu *CPU) AddRR(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	pr, _ := cpu.r.Paired(rr)
 	cpu.add16Helper(pr)
 }
 
 // AddSP adds the stack pointer register to register HL, storing the result in
-// register HL, and updates the flags.
+// register HL. Flags are updated accordingly.
 func (cpu *CPU) AddSP() {
+	cpu.r.IncrementProgramCounter(1)
+
 	sp := cpu.r.StackPointer()
 	cpu.add16Helper(*sp)
 }
 
 // IncrementRR increments the provided register by 1.
 func (cpu *CPU) IncrementRR(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.IncrementPaired(rr)
+
+	cpu.c.AddT(2)
 }
 
 // IncrementSP increments the stack pointer register by 1.
 func (cpu *CPU) IncrementSP() {
+	cpu.r.IncrementProgramCounter(1)
+
 	sp := cpu.r.StackPointer()
-	*sp = *sp + 1
+	*sp++
+
+	cpu.c.AddT(2)
 }
 
 // DecrementRR decrements the provided register by 1.
 func (cpu *CPU) DecrementRR(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.DecrementPaired(rr)
+
+	cpu.c.AddT(2)
 }
 
 // DecrementSP decrements the stack pointer register by 1.
 func (cpu *CPU) DecrementSP() {
+	cpu.r.IncrementProgramCounter(1)
+
 	sp := cpu.r.StackPointer()
-	*sp = *sp - 1
+	*sp--
+
+	cpu.c.AddT(2)
 }
 
 // Adds uint8 to uint16 with uint8 being treated as a signed number in the range
@@ -1044,19 +1066,20 @@ func (cpu *CPU) add16S8(x uint16, y uint8) (result uint16) {
 	result = cpu.add16(x, yy)
 	cpu.r.ResetFlag(FlagZ)
 
-	cpu.c.AddT(1)
-
 	return result
 }
 
-// AddOffsetImmediateToSP adds the immediate byte to the stack pointer register,
-// with the immediate byte being treated as a signed integer in the range
+// AddOffsetImmediateToSP adds the 8-bit immediate operand to the stack pointer
+// register, with the operand being treated as a signed integer in the range
 // [-128, 127]. Flags are updated accordingly.
 func (cpu *CPU) AddOffsetImmediateToSP() {
+	cpu.r.IncrementProgramCounter(1)
+
 	sp := cpu.r.StackPointer()
-	pc := cpu.r.ProgramCounter()
-	offset := cpu.add16S8(*sp, cpu.m.Byte(*pc))
-	*sp = offset
+	offsetSP := cpu.add16S8(*sp, cpu.memImmediateByte())
+	*sp = offsetSP
+
+	cpu.c.AddT(1)
 }
 
 /**
@@ -1068,76 +1091,94 @@ func (cpu *CPU) shouldJump(flag Flag, isSet bool) bool {
 	return fs == isSet
 }
 
-// JumpHL sets the program counter to be equal to the contents of register HL.
+// JumpHL loads the contents of paired register HL into the program counter.
 func (cpu *CPU) JumpHL() {
 	pc := cpu.r.ProgramCounter()
 	hl, _ := cpu.r.Paired(RegisterHL)
 	*pc = hl
+
+	cpu.c.AddT(1)
 }
 
-// JumpOffset sets the program counter to the result of adding the program
-// counter to the immediate byte, with the immediate byte being treated as a
-// signed integer in the range [-128, 127].
+// JumpOffset loads the result of the addition of the program counter and the
+// 8-bit immediate operand, with the operand being treated as a signed integer
+// in the range [-128, 127], into the program counter.
 func (cpu *CPU) JumpOffset() {
+	ib := cpu.memImmediateByte()
 	pc := cpu.r.ProgramCounter()
-	ib := cpu.m.Byte(*pc)
 	*pc = cpu.add16S8(*pc, ib)
 }
 
-// JumpOffsetConditionally sets the program counter to the result of adding the
-// program counter to the immediate byte, with the immediate byte being treated
-// as a signed integer in the range [-128, 127]. The condition is that the
-// status of the provided flag must match the provided status.
+// JumpOffsetConditionally loads the result of the addition of the program
+// counter and the 8-bit immediate operand, with the operand being treated as a
+// signed integer in the range [-128, 127], into the program counter. The
+// condition is that the status of the provided flag must match the provided
+// status.
 func (cpu *CPU) JumpOffsetConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.JumpOffset()
+	} else {
+		cpu.r.IncrementProgramCounter(1)
+		cpu.c.AddT(2)
 	}
 }
 
-// JumpNN sets the program counter to the immediate word. Memory[PC+1] is
-// treated as the most significant byte and Memory[PC] as the least significant
-// byte.
+// JumpNN loads the 16-bit immediate operand into the program counter.
 func (cpu *CPU) JumpNN() {
 	pc := cpu.r.ProgramCounter()
-	*pc = cpu.immediateWord()
+	*pc = cpu.memImmediateWord()
+
+	cpu.c.AddT(2)
 }
 
-// JumpNNConditionally sets the program counter to the immediate word if the
-// status of the provided flag matches the provided status.
+// JumpNNConditionally loads the 16-bit immediate operand into the program
+// counter if the status of the provided flag matches the provided status.
 func (cpu *CPU) JumpNNConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.JumpNN()
+	} else {
+		cpu.r.IncrementProgramCounter(1)
+		cpu.c.AddT(3)
 	}
 }
 
-// CallNN pushes the program counter onto the stack, then sets the program
-// counter to the immediate word.
+// CallNN pushes the program counter onto the stack, then loads the 16-bit
+// immediate operand into the program counter.
 func (cpu *CPU) CallNN() {
 	pc := cpu.r.ProgramCounter()
 	cpu.pushWordOntoStack(*pc)
 	cpu.JumpNN()
 }
 
-// CallNNConditionally pushes the program counter onto the stack, then sets the
-// program counter to the immediate word. The condition is that the status of
-// the provided flag must match the provided status.
+// CallNNConditionally pushes the program counter onto the stack, then loads the
+// 16-bit immediate operand into the program counter. The condition is that the
+// status of the provided flag must match the provided status.
 func (cpu *CPU) CallNNConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.CallNN()
+	} else {
+		cpu.r.IncrementProgramCounter(1)
+		cpu.c.AddT(3)
 	}
 }
 
-// Return pops a word from the stack and puts it into the program counter.
+// Return loads a word popped from the stack into the program counter.
 func (cpu *CPU) Return() {
 	pc := cpu.r.ProgramCounter()
 	*pc = cpu.popStack()
+
+	cpu.c.AddT(2)
 }
 
-// ReturnConditionally pops a word from the stack and puts it into the program
+// ReturnConditionally loads a word popped from the stack into the program
 // counter if the status of the provided flag matches the provided status.
 func (cpu *CPU) ReturnConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.Return()
+		cpu.c.AddT(1)
+	} else {
+		cpu.r.IncrementProgramCounter(1)
+		cpu.c.AddT(2)
 	}
 }
 
@@ -1147,12 +1188,14 @@ func (cpu *CPU) ReturnPostInterrupt() {
 	cpu.Return()
 }
 
-// Restart pushes the program counter onto the stack, then sets the program
-// counter to the provided value.
+// Restart pushes the program counter onto the stack, then loads the provided
+// value into the program counter.
 func (cpu *CPU) Restart(t uint8) {
 	pc := cpu.r.ProgramCounter()
 	cpu.pushWordOntoStack(*pc)
 	*pc = uint16(t)
+
+	cpu.c.AddT(2)
 }
 
 /**
