@@ -204,7 +204,7 @@ var instructions = instructionSet{
 	0x85: &instruction{0x85, 1, "ADD A,L", func(cpu *CPU) { cpu.AddR(RegisterL) }},
 
 	// Register (A) <- Register (A) + Memory[HL]
-	0x86: &instruction{0x86, 2, "ADD A,(HL)", func(cpu *CPU) { cpu.AddHLDereference() }},
+	0x86: &instruction{0x86, 2, "ADD A,(HL)", func(cpu *CPU) { cpu.AddHL() }},
 
 	// Register (A) <- Register (A) + Memory[PC]
 	0xC6: &instruction{0xC6, 2, "ADD A,d8", func(cpu *CPU) { cpu.AddN() }},
@@ -219,7 +219,7 @@ var instructions = instructionSet{
 	0x8D: &instruction{0x8D, 1, "ADC A,L", func(cpu *CPU) { cpu.AdcR(RegisterL) }},
 
 	// Register (A) <- Register (A) + Memory[HL] + Flag (C)
-	0x8E: &instruction{0x8E, 2, "ADC A,(HL)", func(cpu *CPU) { cpu.AdcHLDereference() }},
+	0x8E: &instruction{0x8E, 2, "ADC A,(HL)", func(cpu *CPU) { cpu.AdcHL() }},
 
 	// Register (A) <- Register (A) + Memory[PC] + Flag (C)
 	0xCE: &instruction{0xCE, 2, "ADC A,d8", func(cpu *CPU) { cpu.AdcN() }},
@@ -234,7 +234,7 @@ var instructions = instructionSet{
 	0x95: &instruction{0x95, 1, "SUB L", func(cpu *CPU) { cpu.SubR(RegisterL) }},
 
 	// Register (A) <- Register (A) - Memory[HL]
-	0x96: &instruction{0x96, 2, "SUB (HL)", func(cpu *CPU) { cpu.SubHLDereference() }},
+	0x96: &instruction{0x96, 2, "SUB (HL)", func(cpu *CPU) { cpu.SubHL() }},
 
 	// Register (A) <- Register (A) - Memory[PC]
 	0xD6: &instruction{0xD6, 2, "SUB d8", func(cpu *CPU) { cpu.SubN() }},
@@ -249,7 +249,7 @@ var instructions = instructionSet{
 	0x9D: &instruction{0x9D, 1, "SBC A,L", func(cpu *CPU) { cpu.SbcR(RegisterL) }},
 
 	// Register (A) <- Register (A) - Memory[HL] - Flag (C)
-	0x9E: &instruction{0x9E, 2, "SBC A,(HL)", func(cpu *CPU) { cpu.SbcHLDereference() }},
+	0x9E: &instruction{0x9E, 2, "SBC A,(HL)", func(cpu *CPU) { cpu.SbcHL() }},
 
 	// Register (A) <- Register (A) - Memory[PC] - Flag (C)
 	0xDE: &instruction{0xDE, 2, "SBC A,d8", func(cpu *CPU) { cpu.SbcN() }},

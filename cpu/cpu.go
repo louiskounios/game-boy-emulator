@@ -437,6 +437,8 @@ func (cpu *CPU) add8(x, y uint8, useCarry bool) (result uint8) {
 	cpu.r.PutFlag(FlagH, halfCarryOut)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
+	cpu.c.AddT(1)
+
 	return result
 }
 
@@ -446,59 +448,77 @@ func (cpu *CPU) add8Helper(y uint8, useCarry bool, f func(Flag) error) {
 	f(FlagN)
 }
 
-// AddA adds the accumulator to itself, storing the result in the accumulator,
-// and updates the flags.
+// AddA adds the accumulator to itself, storing the result in the accumulator.
+// Flags are updated accordingly.
 func (cpu *CPU) AddA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.add8Helper(*cpu.r.Accumulator(), false, cpu.r.ResetFlag)
 }
 
 // AddR adds the provided register to the accumulator, storing the result in the
-// accumulator, and updates the flags.
+// accumulator. Flags are updated accordingly.
 func (cpu *CPU) AddR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.add8Helper(*a, false, cpu.r.ResetFlag)
 }
 
 // AddN adds the immediate byte to the accumulator, storing the result in the
-// accumulator, and updates the flags.
+// accumulator. Flags are updated accordingly.
 func (cpu *CPU) AddN() {
-	cpu.add8Helper(cpu.immediateByte(), false, cpu.r.ResetFlag)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.add8Helper(cpu.memImmediateByte(), false, cpu.r.ResetFlag)
 }
 
-// AddHLDereference adds the value stored in the memory location referenced by
-// register HL to the accumulator, storing the result in the accumulator, and
-// updates the flags.
-func (cpu *CPU) AddHLDereference() {
+// AddHL adds the value stored in the memory location referenced by register HL
+// to the accumulator, storing the result in the accumulator. Flags are updated
+// accordingly.
+func (cpu *CPU) AddHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.add8Helper(cpu.m.Byte(hl), false, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.memByte(hl), false, cpu.r.ResetFlag)
 }
 
 // AdcA adds the accumulator and the contents of the carry flag to the
-// accumulator itself, storing the result in the accumulator, and updates the
-// flags.
+// accumulator itself, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) AdcA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.add8Helper(*cpu.r.Accumulator(), true, cpu.r.ResetFlag)
 }
 
 // AdcR adds the provided register and the contents of the carry flag to the
-// accumulator, storing the result in the accumulator, and updates the flags.
+// accumulator, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) AdcR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.add8Helper(*a, true, cpu.r.ResetFlag)
 }
 
 // AdcN adds the immediate byte and the contents of the carry flag to the
-// accumulator, storing the result in the accumulator, and updates the flags.
+// accumulator, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) AdcN() {
-	cpu.add8Helper(cpu.immediateByte(), true, cpu.r.ResetFlag)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.add8Helper(cpu.memImmediateByte(), true, cpu.r.ResetFlag)
 }
 
-// AdcHLDereference adds the value stored in the memory location referenced by
-// register HL and the contents of the carry flag to the accumulator, storing
-// the result in the accumulator, and updates the flags.
-func (cpu *CPU) AdcHLDereference() {
+// AdcHL adds the value stored in the memory location referenced by register HL
+// and the contents of the carry flag to the accumulator, storing the result in
+// the accumulator. Flags are updated accordingly.
+func (cpu *CPU) AdcHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.add8Helper(cpu.m.Byte(hl), true, cpu.r.ResetFlag)
+	cpu.add8Helper(cpu.memByte(hl), true, cpu.r.ResetFlag)
 }
 
 // Adapted from: https://stackoverflow.com/a/8037485/1283818
@@ -517,58 +537,75 @@ func (cpu *CPU) sub8Helper(y uint8, useCarry bool, f func(Flag) error) {
 }
 
 // SubA subtracts the accumulator from itself, storing the result in the
-// accumulator, and updates the flags.
+// accumulator. Flags are updated accordingly.
 func (cpu *CPU) SubA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.sub8Helper(*cpu.r.Accumulator(), false, cpu.r.SetFlag)
 }
 
 // SubR subtracts the provided register from the accumulator, storing the result
-// in the accumulator, and updates the flags.
+// in the accumulator. Flags are updated accordingly.
 func (cpu *CPU) SubR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.sub8Helper(*a, false, cpu.r.SetFlag)
 }
 
 // SubN subtracts the immediate byte from the accumulator, storing the result in
-// the accumulator, and updates the flags.
+// the accumulator. Flags are updated accordingly.
 func (cpu *CPU) SubN() {
-	cpu.sub8Helper(cpu.immediateByte(), false, cpu.r.SetFlag)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.sub8Helper(cpu.memImmediateByte(), false, cpu.r.SetFlag)
 }
 
-// SubHLDereference subtracts the value stored in the memory location referenced
-// by register HL from the accumulator, storing the result in the accumulator,
-// and updates the flags.
-func (cpu *CPU) SubHLDereference() {
+// SubHL subtracts the value stored in the memory location referenced by
+// register HL from the accumulator, storing the result in the accumulator.
+// Flags are updated accordingly.
+func (cpu *CPU) SubHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.sub8Helper(cpu.m.Byte(hl), false, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.memByte(hl), false, cpu.r.SetFlag)
 }
 
 // SbcA subtracts the accumulator and the contents of the carry flag from
-// itself, storing the result in the accumulator, and updates the flags.
+// itself, storing the result in the accumulator. Flags are updated accordingly.
 func (cpu *CPU) SbcA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.sub8Helper(*cpu.r.Accumulator(), true, cpu.r.SetFlag)
 }
 
 // SbcR subtracts the provided register and the contents of the carry flag from
-// the accumulator, storing the result in the accumulator, and updates the
-// flags.
+// the accumulator, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) SbcR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.sub8Helper(*a, true, cpu.r.SetFlag)
 }
 
 // SbcN subtracts the immediate byte and the contents of the carry flag from the
-// accumulator, storing the result in the accumulator, and updates the flags.
+// accumulator, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) SbcN() {
-	cpu.sub8Helper(cpu.immediateByte(), true, cpu.r.SetFlag)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.sub8Helper(cpu.memImmediateByte(), true, cpu.r.SetFlag)
 }
 
-// SbcHLDereference subtracts the value stored in the memory location referenced
-// by register HL and the contents of the carry flag from the accumulator,
-// storing the result in the accumulator, and updates the flags.
-func (cpu *CPU) SbcHLDereference() {
+// SbcHL subtracts the value stored in the memory location referenced by
+// register HL and the contents of the carry flag from the accumulator,
+// storing the result in the accumulator. Flags are updated accordingly.
+func (cpu *CPU) SbcHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.sub8Helper(cpu.m.Byte(hl), true, cpu.r.SetFlag)
+	cpu.sub8Helper(cpu.memByte(hl), true, cpu.r.SetFlag)
 }
 
 func (cpu *CPU) bitwise8Helper(y uint8, f func(uint8, uint8) uint8) {
