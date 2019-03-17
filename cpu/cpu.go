@@ -625,33 +625,41 @@ func (cpu *CPU) and8(x, y uint8) (result uint8) {
 }
 
 // AndA performs bitwise AND between the contents of the accumulator and itself,
-// storing the result in the accumulator. It also updates the flags.
+// storing the result in the accumulator. Flags are updated accordingly.
 func (cpu *CPU) AndA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	cpu.bitwise8Helper(*acc, cpu.and8)
 }
 
 // AndR performs bitwise AND between the contents of the accumulator and the
-// provided register, storing the result in the accumulator. It also updates the
-// flags.
+// provided register, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) AndR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.and8)
 }
 
 // AndN performs bitwise AND between the contents of the accumulator and the
-// immediate byte, storing the result in the accumulator. It also updates the
-// flags.
+// immediate byte, storing the result in the accumulator. Flags are updated
+// accordingly
 func (cpu *CPU) AndN() {
-	cpu.bitwise8Helper(cpu.immediateByte(), cpu.and8)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.bitwise8Helper(cpu.memImmediateByte(), cpu.and8)
 }
 
-// AndHLDereference performs bitwise AND between the contents of the accumulator
-// and the value stored in the memory location referenced by register HL,
-// storing the result in the accumulator. It also updates the flags.
-func (cpu *CPU) AndHLDereference() {
+// AndHL performs bitwise AND between the contents of the accumulator and the
+// value stored in the memory location referenced by register HL, storing the
+// result in the accumulator. Flags are updated accordingly.
+func (cpu *CPU) AndHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.and8)
+	cpu.bitwise8Helper(cpu.memByte(hl), cpu.and8)
 }
 
 func (cpu *CPU) xor8(x, y uint8) (result uint8) {
@@ -666,33 +674,41 @@ func (cpu *CPU) xor8(x, y uint8) (result uint8) {
 }
 
 // XorA performs bitwise XOR between the contents of the accumulator and itself,
-// storing the result in the accumulator. It also updates the flags.
+// storing the result in the accumulator. Flags are updated accordingly.
 func (cpu *CPU) XorA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	cpu.bitwise8Helper(*acc, cpu.xor8)
 }
 
 // XorR performs bitwise XOR between the contents of the accumulator and the
-// provided register, storing the result in the accumulator. It also updates the
-// flags.
+// provided register, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) XorR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.xor8)
 }
 
 // XorN performs bitwise XOR between the contents of the accumulator and the
-// immediate byte, storing the result in the accumulator. It also updates the
-// flags.
+// immediate byte, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) XorN() {
-	cpu.bitwise8Helper(cpu.immediateByte(), cpu.xor8)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.bitwise8Helper(cpu.memImmediateByte(), cpu.xor8)
 }
 
-// XorHLDereference performs bitwise XOR between the contents of the accumulator
-// and the value stored in the memory location referenced by register HL,
-// storing the result in the accumulator. It also updates the flags.
-func (cpu *CPU) XorHLDereference() {
+// XorHL performs bitwise XOR between the contents of the accumulator and the
+// value stored in the memory location referenced by register HL, storing the
+// result in the accumulator. Flags are updated accordingly.
+func (cpu *CPU) XorHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.xor8)
+	cpu.bitwise8Helper(cpu.memByte(hl), cpu.xor8)
 }
 
 func (cpu *CPU) or8(x, y uint8) (result uint8) {
@@ -707,33 +723,41 @@ func (cpu *CPU) or8(x, y uint8) (result uint8) {
 }
 
 // OrA performs bitwise OR between the contents of the accumulator and itself,
-// storing the result in the accumulator. It also updates the flags.
+// storing the result in the accumulator. Flags are updated accordingly.
 func (cpu *CPU) OrA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	cpu.bitwise8Helper(*acc, cpu.or8)
 }
 
 // OrR performs bitwise OR between the contents of the accumulator and the
-// provided register, storing the result in the accumulator. It also updates the
-// flags.
+// provided register, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) OrR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.bitwise8Helper(*a, cpu.or8)
 }
 
 // OrN performs bitwise OR between the contents of the accumulator and the
-// immediate byte, storing the result in the accumulator. It also updates the
-// flags.
+// immediate byte, storing the result in the accumulator. Flags are updated
+// accordingly.
 func (cpu *CPU) OrN() {
-	cpu.bitwise8Helper(cpu.immediateByte(), cpu.or8)
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.bitwise8Helper(cpu.memImmediateByte(), cpu.or8)
 }
 
-// OrHLDereference performs bitwise OR between the contents of the accumulator
-// and the value stored in the memory location referenced by register HL,
-// storing the result in the accumulator. It also updates the flags.
-func (cpu *CPU) OrHLDereference() {
+// OrHL performs bitwise OR between the contents of the accumulator and the
+// value stored in the memory location referenced by register HL, storing the
+// result in the accumulator. Flags are updated accordingly.
+func (cpu *CPU) OrHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.bitwise8Helper(cpu.m.Byte(hl), cpu.or8)
+	cpu.bitwise8Helper(cpu.memByte(hl), cpu.or8)
 }
 
 // See cpu.sub8Helper function.
@@ -743,31 +767,39 @@ func (cpu *CPU) compare8Helper(y uint8) {
 	cpu.r.SetFlag(FlagN)
 }
 
-// CompareA subtracts the accumulator from itself, discarding the result, and
-// updates the flags.
+// CompareA subtracts the accumulator from itself, discarding the result. Flags
+// are updated accordingly.
 func (cpu *CPU) CompareA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.compare8Helper(*cpu.r.Accumulator())
 }
 
 // CompareR subtracts the provided register from the accumulator, discarding the
-// result, and updates the flags.
+// result. Flags are updated accordingly.
 func (cpu *CPU) CompareR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.compare8Helper(*a)
 }
 
 // CompareN subtracts the immediate byte from the accumulator, discarding the
-// result, and updates the flags.
+// result. Flags are updated accordingly.
 func (cpu *CPU) CompareN() {
-	cpu.compare8Helper(cpu.immediateByte())
+	cpu.r.IncrementProgramCounter(1)
+
+	cpu.compare8Helper(cpu.memImmediateByte())
 }
 
-// CompareHLDereference subtracts the value stored in the memory location
-// referenced by register HL from the accumulator, discarding the result, and
-// updates the flags.
-func (cpu *CPU) CompareHLDereference() {
+// CompareHL subtracts the value stored in the memory location referenced by
+// register HL from the accumulator, discarding the result. Flags are updated
+// accordingly.
+func (cpu *CPU) CompareHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.compare8Helper(cpu.m.Byte(hl))
+	cpu.compare8Helper(cpu.memByte(hl))
 }
 
 func (cpu *CPU) increment8(x, by uint8) (result uint8) {
@@ -784,27 +816,37 @@ func (cpu *CPU) increment8(x, by uint8) (result uint8) {
 func (cpu *CPU) increment8Helper(x *uint8) {
 	*x = cpu.increment8(*x, 1)
 	cpu.r.ResetFlag(FlagN)
+
+	cpu.c.AddT(1)
 }
 
-// IncrementA increments the accumulator register by 1, and updates the flags.
+// IncrementA increments the accumulator register by 1. Flags are updated
+// accordingly.
 func (cpu *CPU) IncrementA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	cpu.increment8Helper(acc)
 }
 
-// IncrementR increments the provided register by 1, and updates the flags.
+// IncrementR increments the provided register by 1. Flags are updated
+// accordingly.
 func (cpu *CPU) IncrementR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.increment8Helper(a)
 }
 
-// IncrementHLDereference increments the memory contents referenced by register
-// HL by 1, and updates the flags.
-func (cpu *CPU) IncrementHLDereference() {
+// IncrementHL increments the memory contents referenced by register HL by 1.
+// Flags are updated accordingly.
+func (cpu *CPU) IncrementHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	val := cpu.m.Byte(hl)
+	val := cpu.memByte(hl)
 	cpu.increment8Helper(&val)
-	cpu.m.SetByte(hl, val)
+	cpu.memStoreByte(hl, val)
 }
 
 func (cpu *CPU) decrement8Helper(x *uint8) {
@@ -812,40 +854,52 @@ func (cpu *CPU) decrement8Helper(x *uint8) {
 	by = ^by + 1
 	*x = cpu.increment8(*x, by)
 	cpu.r.SetFlag(FlagN)
+
+	cpu.c.AddT(1)
 }
 
-// DecrementA decrements the accumulator register by 1, and updates the flags.
+// DecrementA decrements the accumulator register by 1. Flags are updated
+// accordingly.
 func (cpu *CPU) DecrementA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	cpu.decrement8Helper(acc)
 }
 
-// DecrementR decrements the provided register by 1, and updates the flags.
+// DecrementR decrements the provided register by 1. Flags are updated
+// accordingly.
 func (cpu *CPU) DecrementR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	a, _ := cpu.r.Auxiliary(r)
 	cpu.decrement8Helper(a)
 }
 
-// DecrementHLDereference decrements the memory contents referenced by register
-// HL by 1, and updates the flags.
-func (cpu *CPU) DecrementHLDereference() {
+// DecrementHL decrements the memory contents referenced by register HL by 1.
+// Flags are updated accordingly.
+func (cpu *CPU) DecrementHL() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
-	val := cpu.m.Byte(hl)
+	val := cpu.memByte(hl)
 	cpu.decrement8Helper(&val)
-	cpu.m.SetByte(hl, val)
+	cpu.memStoreByte(hl, val)
 }
 
 // DecimalAdjustA adjusts the contents of the accumulator following a binary
 // addition / subtraction. It retroactively turns the previous operation into
-// a BCD addition / subtraction. This is achieved by subtracting 6 from the
-// accumulator's upper and/or lower nybble. The N, C and H flags are utilised
-// to determine whether the correction must be added or subtracted (depending
-// on if the previous operation was an addition or subtraction) and how / if
-// each nybble should be affected (depending on if a carry or half-carry
-// occurred in the previous operation).
+// a BCD addition / subtraction. This is achieved by adding / subtracting 6
+// to / from the accumulator's upper and/or lower nybble. The N, C and H flags
+// are utilised to determine whether the correction must be added or subtracted
+// (depending on if the previous operation was an addition or subtraction) and
+// how / if each nybble should be affected (depending on if a carry or
+// half-carry occurred in the previous operation).
 //
 // Adapted from: https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
 func (cpu *CPU) DecimalAdjustA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 
 	if n, _ := cpu.r.IsFlagSet(FlagN); !n {
@@ -869,32 +923,46 @@ func (cpu *CPU) DecimalAdjustA() {
 
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.PutFlag(FlagZ, *acc == 0)
+
+	cpu.c.AddT(1)
 }
 
-// ComplementA sets the accumulator to the one's complement of itself, and
-// updates the flags.
+// ComplementA sets the accumulator to the one's complement of itself. Flags are
+// updated accordingly.
 func (cpu *CPU) ComplementA() {
+	cpu.r.IncrementProgramCounter(1)
+
 	acc := cpu.r.Accumulator()
 	*acc = ^*acc
 
 	cpu.r.SetFlag(FlagH)
 	cpu.r.SetFlag(FlagN)
+
+	cpu.c.AddT(1)
 }
 
-// ComplementCarryFlag toggles the carry flag, and updates the flags.
+// ComplementCarryFlag toggles the carry flag. Flags are updated accordingly.
 func (cpu *CPU) ComplementCarryFlag() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.ToggleFlag(FlagC)
 
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.ResetFlag(FlagN)
+
+	cpu.c.AddT(1)
 }
 
-// SetCarryFlag sets the carry flag, and updates the flags.
+// SetCarryFlag sets the carry flag. Flags are updated accordingly.
 func (cpu *CPU) SetCarryFlag() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.SetFlag(FlagC)
 
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.ResetFlag(FlagN)
+
+	cpu.c.AddT(1)
 }
 
 /**

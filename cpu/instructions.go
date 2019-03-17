@@ -264,7 +264,7 @@ var instructions = instructionSet{
 	0xA5: &instruction{0xA5, 1, "AND L", func(cpu *CPU) { cpu.AndR(RegisterL) }},
 
 	// Register (A) <- Register (A) & Memory[HL]
-	0xA6: &instruction{0xA6, 2, "AND (HL)", func(cpu *CPU) { cpu.AndHLDereference() }},
+	0xA6: &instruction{0xA6, 2, "AND (HL)", func(cpu *CPU) { cpu.AndHL() }},
 
 	// Register (A) <- Register (A) & Memory[PC]
 	0xE6: &instruction{0xE6, 2, "AND d8", func(cpu *CPU) { cpu.AndN() }},
@@ -279,7 +279,7 @@ var instructions = instructionSet{
 	0xAD: &instruction{0xAD, 1, "XOR L", func(cpu *CPU) { cpu.XorR(RegisterL) }},
 
 	// Register (A) <- Register (A) ^ Memory[HL]
-	0xAE: &instruction{0xAE, 2, "XOR (HL)", func(cpu *CPU) { cpu.XorHLDereference() }},
+	0xAE: &instruction{0xAE, 2, "XOR (HL)", func(cpu *CPU) { cpu.XorHL() }},
 
 	// Register (A) <- Register (A) ^ Memory[PC]
 	0xEE: &instruction{0xEE, 2, "XOR d8", func(cpu *CPU) { cpu.XorN() }},
@@ -294,7 +294,7 @@ var instructions = instructionSet{
 	0xB5: &instruction{0xB5, 1, "OR L", func(cpu *CPU) { cpu.OrR(RegisterL) }},
 
 	// Register (A) <- Register (A) | Memory[HL]
-	0xB6: &instruction{0xB6, 2, "OR (HL)", func(cpu *CPU) { cpu.OrHLDereference() }},
+	0xB6: &instruction{0xB6, 2, "OR (HL)", func(cpu *CPU) { cpu.OrHL() }},
 
 	// Register (A) <- Register (A) | Memory[PC]
 	0xF6: &instruction{0xF6, 2, "OR d8", func(cpu *CPU) { cpu.OrN() }},
@@ -309,7 +309,7 @@ var instructions = instructionSet{
 	0xBD: &instruction{0xBD, 1, "CP L", func(cpu *CPU) { cpu.CompareR(RegisterL) }},
 
 	// Register (A) - Memory[HL]
-	0xBE: &instruction{0xBE, 2, "CP (HL)", func(cpu *CPU) { cpu.CompareHLDereference() }},
+	0xBE: &instruction{0xBE, 2, "CP (HL)", func(cpu *CPU) { cpu.CompareHL() }},
 
 	// Register (A) - Memory[PC]
 	0xFE: &instruction{0xFE, 2, "CP d8", func(cpu *CPU) { cpu.CompareN() }},
@@ -324,7 +324,7 @@ var instructions = instructionSet{
 	0x2C: &instruction{0x2C, 1, "INC L", func(cpu *CPU) { cpu.IncrementR(RegisterL) }},
 
 	// Memory[HL] <- Memory[HL] + 1
-	0x34: &instruction{0x34, 3, "INC (HL)", func(cpu *CPU) { cpu.IncrementHLDereference() }},
+	0x34: &instruction{0x34, 3, "INC (HL)", func(cpu *CPU) { cpu.IncrementHL() }},
 
 	// Register (A, B, C, D, E, H, L) <- Register (A, B, C, D, E, H, L) - 1
 	0x3D: &instruction{0x3D, 1, "DEC A", func(cpu *CPU) { cpu.DecrementA() }},
@@ -336,7 +336,7 @@ var instructions = instructionSet{
 	0x2D: &instruction{0x2D, 1, "DEC L", func(cpu *CPU) { cpu.DecrementR(RegisterL) }},
 
 	// Memory[HL] <- Memory[HL] - 1
-	0x35: &instruction{0x35, 3, "DEC (HL)", func(cpu *CPU) { cpu.DecrementHLDereference() }},
+	0x35: &instruction{0x35, 3, "DEC (HL)", func(cpu *CPU) { cpu.DecrementHL() }},
 
 	// Register (A) decimally adjusted
 	0x27: &instruction{0x27, 1, "DAA", func(cpu *CPU) { cpu.DecimalAdjustA() }},
