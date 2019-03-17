@@ -148,10 +148,10 @@ var instructions = instructionSet{
 	0x3A: &instruction{0x3A, 2, "LD A,(HL-)", func(cpu *CPU) { cpu.LoadHLIntoADecrementHL() }},
 
 	// Register (A) -> Memory[BC]
-	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
+	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.LoadAIntoBC() }},
 
 	// Register (A) -> Memory[DE]
-	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
+	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.LoadAIntoDE() }},
 
 	// Register (A) -> Memory[HL++]
 	0x22: &instruction{0x22, 2, "LD (HL+),A", func(cpu *CPU) { cpu.LoadAIntoHLIncrementHL() }},
@@ -457,7 +457,7 @@ var instructionsCB = instructionSet{
 	0x05: &instruction{0x05, 1, "RLC L", func(cpu *CPU) { cpu.RLC(RegisterL) }},
 
 	// Memory[HL] <<
-	0x06: &instruction{0x06, 3, "RLC (HL)", func(cpu *CPU) { cpu.RLCHLDereference() }},
+	0x06: &instruction{0x06, 3, "RLC (HL)", func(cpu *CPU) { cpu.RLCHL() }},
 
 	// Register (A, B, C, D, E, H, L) >>
 	0x0F: &instruction{0x0F, 1, "RRC A", func(cpu *CPU) { cpu.RRCACB() }},
@@ -469,7 +469,7 @@ var instructionsCB = instructionSet{
 	0x0D: &instruction{0x0D, 1, "RRC L", func(cpu *CPU) { cpu.RRC(RegisterL) }},
 
 	// Memory[HL] >>
-	0x0E: &instruction{0x0E, 3, "RRC (HL)", func(cpu *CPU) { cpu.RRCHLDereference() }},
+	0x0E: &instruction{0x0E, 3, "RRC (HL)", func(cpu *CPU) { cpu.RRCHL() }},
 
 	// Register (A, B, C, D, E, H, L) <<
 	0x17: &instruction{0x17, 1, "RL A", func(cpu *CPU) { cpu.RLA() }},
@@ -481,7 +481,7 @@ var instructionsCB = instructionSet{
 	0x15: &instruction{0x15, 1, "RL L", func(cpu *CPU) { cpu.RL(RegisterL) }},
 
 	// Memory[HL] <<
-	0x16: &instruction{0x16, 3, "RL (HL)", func(cpu *CPU) { cpu.RLHLDereference() }},
+	0x16: &instruction{0x16, 3, "RL (HL)", func(cpu *CPU) { cpu.RLHL() }},
 
 	// Register (A, B, C, D, E, H, L) >>
 	0x1F: &instruction{0x1F, 1, "RR A", func(cpu *CPU) { cpu.RRA() }},
@@ -493,7 +493,7 @@ var instructionsCB = instructionSet{
 	0x1D: &instruction{0x1D, 1, "RR L", func(cpu *CPU) { cpu.RR(RegisterL) }},
 
 	// Memory[HL] >>
-	0x1E: &instruction{0x1E, 3, "RR (HL)", func(cpu *CPU) { cpu.RRHLDereference() }},
+	0x1E: &instruction{0x1E, 3, "RR (HL)", func(cpu *CPU) { cpu.RRHL() }},
 
 	// Register (A, B, C, D, E, H, L) <<
 	0x27: &instruction{0x27, 1, "SLA A", func(cpu *CPU) { cpu.SLAA() }},
@@ -505,7 +505,7 @@ var instructionsCB = instructionSet{
 	0x25: &instruction{0x25, 1, "SLA L", func(cpu *CPU) { cpu.SLA(RegisterL) }},
 
 	// Memory[HL] <<
-	0x26: &instruction{0x26, 3, "SLA (HL)", func(cpu *CPU) { cpu.SLAHLDereference() }},
+	0x26: &instruction{0x26, 3, "SLA (HL)", func(cpu *CPU) { cpu.SLAHL() }},
 
 	// Register (A, B, C, D, E, H, L) >>
 	0x2F: &instruction{0x2F, 1, "SRA A", func(cpu *CPU) { cpu.SRAA() }},
@@ -517,7 +517,7 @@ var instructionsCB = instructionSet{
 	0x2D: &instruction{0x2D, 1, "SRA L", func(cpu *CPU) { cpu.SRA(RegisterL) }},
 
 	// Memory[HL] >>
-	0x2E: &instruction{0x2E, 3, "SRA (HL)", func(cpu *CPU) { cpu.SRAHLDereference() }},
+	0x2E: &instruction{0x2E, 3, "SRA (HL)", func(cpu *CPU) { cpu.SRAHL() }},
 
 	// Register (A, B, C, D, E, H, L) >>
 	0x3F: &instruction{0x3F, 1, "SRL A", func(cpu *CPU) { cpu.SRLA() }},
@@ -529,7 +529,7 @@ var instructionsCB = instructionSet{
 	0x3D: &instruction{0x3D, 1, "SRL L", func(cpu *CPU) { cpu.SRL(RegisterL) }},
 
 	// Memory[HL] >>
-	0x3E: &instruction{0x3E, 3, "SRL (HL)", func(cpu *CPU) { cpu.SRLHLDereference() }},
+	0x3E: &instruction{0x3E, 3, "SRL (HL)", func(cpu *CPU) { cpu.SRLHL() }},
 
 	// Register (A, B, C, D, E, H, L) <- Register (A, B, C, D, E, H, L)[0-4] | Register (A, B, C, D, E, H, L)[4-8]
 	0x37: &instruction{0x37, 1, "SWAP A", func(cpu *CPU) { cpu.SwapA() }},
@@ -541,7 +541,7 @@ var instructionsCB = instructionSet{
 	0x35: &instruction{0x35, 1, "SWAP L", func(cpu *CPU) { cpu.Swap(RegisterL) }},
 
 	// Memory[HL] <- Memory[HL][0-4] | Memory[HL][4-8]
-	0x36: &instruction{0x36, 3, "SWAP (HL)", func(cpu *CPU) { cpu.SwapHLDereference() }},
+	0x36: &instruction{0x36, 3, "SWAP (HL)", func(cpu *CPU) { cpu.SwapHL() }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[0]
 	0x47: &instruction{0x47, 1, "BIT 0,A", func(cpu *CPU) { cpu.BitA(0) }},
@@ -553,7 +553,7 @@ var instructionsCB = instructionSet{
 	0x45: &instruction{0x45, 1, "BIT 0,L", func(cpu *CPU) { cpu.Bit(0, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][0]
-	0x46: &instruction{0x46, 2, "BIT 0,(HL)", func(cpu *CPU) { cpu.BitHLDereference(0) }},
+	0x46: &instruction{0x46, 2, "BIT 0,(HL)", func(cpu *CPU) { cpu.BitHL(0) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[1]
 	0x4F: &instruction{0x4F, 1, "BIT 1,A", func(cpu *CPU) { cpu.BitA(1) }},
@@ -565,7 +565,7 @@ var instructionsCB = instructionSet{
 	0x4D: &instruction{0x4D, 1, "BIT 1,L", func(cpu *CPU) { cpu.Bit(1, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][1]
-	0x4E: &instruction{0x4E, 2, "BIT 1,(HL)", func(cpu *CPU) { cpu.BitHLDereference(1) }},
+	0x4E: &instruction{0x4E, 2, "BIT 1,(HL)", func(cpu *CPU) { cpu.BitHL(1) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[2]
 	0x57: &instruction{0x57, 1, "BIT 2,A", func(cpu *CPU) { cpu.BitA(2) }},
@@ -577,7 +577,7 @@ var instructionsCB = instructionSet{
 	0x55: &instruction{0x55, 1, "BIT 2,L", func(cpu *CPU) { cpu.Bit(2, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][2]
-	0x56: &instruction{0x56, 2, "BIT 2,(HL)", func(cpu *CPU) { cpu.BitHLDereference(2) }},
+	0x56: &instruction{0x56, 2, "BIT 2,(HL)", func(cpu *CPU) { cpu.BitHL(2) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[3]
 	0x5F: &instruction{0x5F, 1, "BIT 3,A", func(cpu *CPU) { cpu.BitA(3) }},
@@ -589,7 +589,7 @@ var instructionsCB = instructionSet{
 	0x5D: &instruction{0x5D, 1, "BIT 3,L", func(cpu *CPU) { cpu.Bit(3, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][3]
-	0x5E: &instruction{0x5E, 2, "BIT 3,(HL)", func(cpu *CPU) { cpu.BitHLDereference(3) }},
+	0x5E: &instruction{0x5E, 2, "BIT 3,(HL)", func(cpu *CPU) { cpu.BitHL(3) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[4]
 	0x67: &instruction{0x67, 1, "BIT 4,A", func(cpu *CPU) { cpu.BitA(4) }},
@@ -601,7 +601,7 @@ var instructionsCB = instructionSet{
 	0x65: &instruction{0x65, 1, "BIT 4,L", func(cpu *CPU) { cpu.Bit(4, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][4]
-	0x66: &instruction{0x66, 2, "BIT 4,(HL)", func(cpu *CPU) { cpu.BitHLDereference(4) }},
+	0x66: &instruction{0x66, 2, "BIT 4,(HL)", func(cpu *CPU) { cpu.BitHL(4) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[5]
 	0x6F: &instruction{0x6F, 1, "BIT 5,A", func(cpu *CPU) { cpu.BitA(5) }},
@@ -613,7 +613,7 @@ var instructionsCB = instructionSet{
 	0x6D: &instruction{0x6D, 1, "BIT 5,L", func(cpu *CPU) { cpu.Bit(5, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][5]
-	0x6E: &instruction{0x6E, 2, "BIT 5,(HL)", func(cpu *CPU) { cpu.BitHLDereference(5) }},
+	0x6E: &instruction{0x6E, 2, "BIT 5,(HL)", func(cpu *CPU) { cpu.BitHL(5) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[6]
 	0x77: &instruction{0x77, 1, "BIT 6,A", func(cpu *CPU) { cpu.BitA(6) }},
@@ -625,7 +625,7 @@ var instructionsCB = instructionSet{
 	0x75: &instruction{0x75, 1, "BIT 6,L", func(cpu *CPU) { cpu.Bit(6, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][6]
-	0x76: &instruction{0x76, 2, "BIT 6,(HL)", func(cpu *CPU) { cpu.BitHLDereference(6) }},
+	0x76: &instruction{0x76, 2, "BIT 6,(HL)", func(cpu *CPU) { cpu.BitHL(6) }},
 
 	// Flag (Z) <- ^Register (A, B, C, D, E, H, L)[7]
 	0x7F: &instruction{0x7F, 1, "BIT 7,A", func(cpu *CPU) { cpu.BitA(7) }},
@@ -637,7 +637,7 @@ var instructionsCB = instructionSet{
 	0x7D: &instruction{0x7D, 1, "BIT 7,L", func(cpu *CPU) { cpu.Bit(7, RegisterL) }},
 
 	// Flag (Z) <- ^Memory[HL][7]
-	0x7E: &instruction{0x7E, 2, "BIT 7,(HL)", func(cpu *CPU) { cpu.BitHLDereference(7) }},
+	0x7E: &instruction{0x7E, 2, "BIT 7,(HL)", func(cpu *CPU) { cpu.BitHL(7) }},
 
 	// Register (A, B, C, D, E, H, L)[0] <- 0
 	0x87: &instruction{0x87, 1, "RES 0,A", func(cpu *CPU) { cpu.ResetA(0) }},
@@ -649,7 +649,7 @@ var instructionsCB = instructionSet{
 	0x85: &instruction{0x85, 1, "RES 0,L", func(cpu *CPU) { cpu.Reset(0, RegisterL) }},
 
 	// Memory[HL][0] <- 0
-	0x86: &instruction{0x86, 3, "RES 0,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(0) }},
+	0x86: &instruction{0x86, 3, "RES 0,(HL)", func(cpu *CPU) { cpu.ResetHL(0) }},
 
 	// Register (A, B, C, D, E, H, L)[1] <- 0
 	0x8F: &instruction{0x8F, 1, "RES 1,A", func(cpu *CPU) { cpu.ResetA(1) }},
@@ -661,7 +661,7 @@ var instructionsCB = instructionSet{
 	0x8D: &instruction{0x8D, 1, "RES 1,L", func(cpu *CPU) { cpu.Reset(1, RegisterL) }},
 
 	// Memory[HL][1] <- 0
-	0x8E: &instruction{0x8E, 3, "RES 1,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(1) }},
+	0x8E: &instruction{0x8E, 3, "RES 1,(HL)", func(cpu *CPU) { cpu.ResetHL(1) }},
 
 	// Register (A, B, C, D, E, H, L)[2] <- 0
 	0x97: &instruction{0x97, 1, "RES 2,A", func(cpu *CPU) { cpu.ResetA(2) }},
@@ -673,7 +673,7 @@ var instructionsCB = instructionSet{
 	0x95: &instruction{0x95, 1, "RES 2,L", func(cpu *CPU) { cpu.Reset(2, RegisterL) }},
 
 	// Memory[HL][2] <- 0
-	0x96: &instruction{0x96, 3, "RES 2,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(2) }},
+	0x96: &instruction{0x96, 3, "RES 2,(HL)", func(cpu *CPU) { cpu.ResetHL(2) }},
 
 	// Register (A, B, C, D, E, H, L)[3] <- 0
 	0x9F: &instruction{0x9F, 1, "RES 3,A", func(cpu *CPU) { cpu.ResetA(3) }},
@@ -685,7 +685,7 @@ var instructionsCB = instructionSet{
 	0x9D: &instruction{0x9D, 1, "RES 3,L", func(cpu *CPU) { cpu.Reset(3, RegisterL) }},
 
 	// Memory[HL][3] <- 0
-	0x9E: &instruction{0x9E, 3, "RES 3,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(3) }},
+	0x9E: &instruction{0x9E, 3, "RES 3,(HL)", func(cpu *CPU) { cpu.ResetHL(3) }},
 
 	// Register (A, B, C, D, E, H, L)[4] <- 0
 	0xA7: &instruction{0xA7, 1, "RES 4,A", func(cpu *CPU) { cpu.ResetA(4) }},
@@ -697,7 +697,7 @@ var instructionsCB = instructionSet{
 	0xA5: &instruction{0xA5, 1, "RES 4,L", func(cpu *CPU) { cpu.Reset(4, RegisterL) }},
 
 	// Memory[HL][4] <- 0
-	0xA6: &instruction{0xA6, 3, "RES 4,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(4) }},
+	0xA6: &instruction{0xA6, 3, "RES 4,(HL)", func(cpu *CPU) { cpu.ResetHL(4) }},
 
 	// Register (A, B, C, D, E, H, L)[5] <- 0
 	0xAF: &instruction{0xAF, 1, "RES 5,A", func(cpu *CPU) { cpu.ResetA(5) }},
@@ -709,7 +709,7 @@ var instructionsCB = instructionSet{
 	0xAD: &instruction{0xAD, 1, "RES 5,L", func(cpu *CPU) { cpu.Reset(5, RegisterL) }},
 
 	// Memory[HL][5] <- 0
-	0xAE: &instruction{0xAE, 3, "RES 5,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(5) }},
+	0xAE: &instruction{0xAE, 3, "RES 5,(HL)", func(cpu *CPU) { cpu.ResetHL(5) }},
 
 	// Register (A, B, C, D, E, H, L)[6] <- 0
 	0xB7: &instruction{0xB7, 1, "RES 6,A", func(cpu *CPU) { cpu.ResetA(6) }},
@@ -721,7 +721,7 @@ var instructionsCB = instructionSet{
 	0xB5: &instruction{0xB5, 1, "RES 6,L", func(cpu *CPU) { cpu.Reset(6, RegisterL) }},
 
 	// Memory[HL][6] <- 0
-	0xB6: &instruction{0xB6, 3, "RES 6,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(6) }},
+	0xB6: &instruction{0xB6, 3, "RES 6,(HL)", func(cpu *CPU) { cpu.ResetHL(6) }},
 
 	// Register (A, B, C, D, E, H, L)[7] <- 0
 	0xBF: &instruction{0xBF, 1, "RES 7,A", func(cpu *CPU) { cpu.ResetA(7) }},
@@ -733,7 +733,7 @@ var instructionsCB = instructionSet{
 	0xBD: &instruction{0xBD, 1, "RES 7,L", func(cpu *CPU) { cpu.Reset(7, RegisterL) }},
 
 	// Memory[HL][7] <- 0
-	0xBE: &instruction{0xBE, 3, "RES 7,(HL)", func(cpu *CPU) { cpu.ResetHLDereference(7) }},
+	0xBE: &instruction{0xBE, 3, "RES 7,(HL)", func(cpu *CPU) { cpu.ResetHL(7) }},
 
 	// Register (A, B, C, D, E, H, L)[0] <- 1
 	0xC7: &instruction{0xC7, 1, "SET 0,A", func(cpu *CPU) { cpu.SetA(0) }},
@@ -745,7 +745,7 @@ var instructionsCB = instructionSet{
 	0xC5: &instruction{0xC5, 1, "SET 0,L", func(cpu *CPU) { cpu.Set(0, RegisterL) }},
 
 	// Memory[HL][0] <- 1
-	0xC6: &instruction{0xC6, 3, "SET 0,(HL)", func(cpu *CPU) { cpu.SetHLDereference(0) }},
+	0xC6: &instruction{0xC6, 3, "SET 0,(HL)", func(cpu *CPU) { cpu.SetHL(0) }},
 
 	// Register (A, B, C, D, E, H, L)[1] <- 1
 	0xCF: &instruction{0xCF, 1, "SET 1,A", func(cpu *CPU) { cpu.SetA(1) }},
@@ -757,7 +757,7 @@ var instructionsCB = instructionSet{
 	0xCD: &instruction{0xCD, 1, "SET 1,L", func(cpu *CPU) { cpu.Set(1, RegisterL) }},
 
 	// Memory[HL][1] <- 1
-	0xCE: &instruction{0xCE, 3, "SET 1,(HL)", func(cpu *CPU) { cpu.SetHLDereference(1) }},
+	0xCE: &instruction{0xCE, 3, "SET 1,(HL)", func(cpu *CPU) { cpu.SetHL(1) }},
 
 	// Register (A, B, C, D, E, H, L)[2] <- 1
 	0xD7: &instruction{0xD7, 1, "SET 2,A", func(cpu *CPU) { cpu.SetA(2) }},
@@ -769,7 +769,7 @@ var instructionsCB = instructionSet{
 	0xD5: &instruction{0xD5, 1, "SET 2,L", func(cpu *CPU) { cpu.Set(2, RegisterL) }},
 
 	// Memory[HL][2] <- 1
-	0xD6: &instruction{0xD6, 3, "SET 2,(HL)", func(cpu *CPU) { cpu.SetHLDereference(2) }},
+	0xD6: &instruction{0xD6, 3, "SET 2,(HL)", func(cpu *CPU) { cpu.SetHL(2) }},
 
 	// Register (A, B, C, D, E, H, L)[3] <- 1
 	0xDF: &instruction{0xDF, 1, "SET 3,A", func(cpu *CPU) { cpu.SetA(3) }},
@@ -781,7 +781,7 @@ var instructionsCB = instructionSet{
 	0xDD: &instruction{0xDD, 1, "SET 3,L", func(cpu *CPU) { cpu.Set(3, RegisterL) }},
 
 	// Memory[HL][3] <- 1
-	0xDE: &instruction{0xDE, 3, "SET 3,(HL)", func(cpu *CPU) { cpu.SetHLDereference(3) }},
+	0xDE: &instruction{0xDE, 3, "SET 3,(HL)", func(cpu *CPU) { cpu.SetHL(3) }},
 
 	// Register (A, B, C, D, E, H, L)[4] <- 1
 	0xE7: &instruction{0xE7, 1, "SET 4,A", func(cpu *CPU) { cpu.SetA(4) }},
@@ -793,7 +793,7 @@ var instructionsCB = instructionSet{
 	0xE5: &instruction{0xE5, 1, "SET 4,L", func(cpu *CPU) { cpu.Set(4, RegisterL) }},
 
 	// Memory[HL][4] <- 1
-	0xE6: &instruction{0xE6, 3, "SET 4,(HL)", func(cpu *CPU) { cpu.SetHLDereference(4) }},
+	0xE6: &instruction{0xE6, 3, "SET 4,(HL)", func(cpu *CPU) { cpu.SetHL(4) }},
 
 	// Register (A, B, C, D, E, H, L)[5] <- 1
 	0xEF: &instruction{0xEF, 1, "SET 5,A", func(cpu *CPU) { cpu.SetA(5) }},
@@ -805,7 +805,7 @@ var instructionsCB = instructionSet{
 	0xED: &instruction{0xED, 1, "SET 5,L", func(cpu *CPU) { cpu.Set(5, RegisterL) }},
 
 	// Memory[HL][5] <- 1
-	0xEE: &instruction{0xEE, 3, "SET 5,(HL)", func(cpu *CPU) { cpu.SetHLDereference(5) }},
+	0xEE: &instruction{0xEE, 3, "SET 5,(HL)", func(cpu *CPU) { cpu.SetHL(5) }},
 
 	// Register (A, B, C, D, E, H, L)[6] <- 1
 	0xF7: &instruction{0xF7, 1, "SET 6,A", func(cpu *CPU) { cpu.SetA(6) }},
@@ -817,7 +817,7 @@ var instructionsCB = instructionSet{
 	0xF5: &instruction{0xF5, 1, "SET 6,L", func(cpu *CPU) { cpu.Set(6, RegisterL) }},
 
 	// Memory[HL][6] <- 1
-	0xF6: &instruction{0xF6, 3, "SET 6,(HL)", func(cpu *CPU) { cpu.SetHLDereference(6) }},
+	0xF6: &instruction{0xF6, 3, "SET 6,(HL)", func(cpu *CPU) { cpu.SetHL(6) }},
 
 	// Register (A, B, C, D, E, H, L)[7] <- 1
 	0xFF: &instruction{0xFF, 1, "SET 7,A", func(cpu *CPU) { cpu.SetA(7) }},
@@ -829,5 +829,5 @@ var instructionsCB = instructionSet{
 	0xFD: &instruction{0xFD, 1, "SET 7,L", func(cpu *CPU) { cpu.Set(7, RegisterL) }},
 
 	// Memory[HL][7] <- 1
-	0xFE: &instruction{0xFE, 3, "SET 7,(HL)", func(cpu *CPU) { cpu.SetHLDereference(7) }},
+	0xFE: &instruction{0xFE, 3, "SET 7,(HL)", func(cpu *CPU) { cpu.SetHL(7) }},
 }
