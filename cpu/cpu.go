@@ -6,7 +6,7 @@ import (
 
 // CPU is the CPU.
 type CPU struct {
-	c *clock
+	c *Clock
 	i *instruction
 	r *Registers
 	m *mmu.Memory
@@ -14,7 +14,7 @@ type CPU struct {
 
 // New returns a new CPU struct.
 func New() *CPU {
-	c := &clock{}
+	c := NewClock(0)
 	i := &instruction{}
 	r := NewRegisters()
 	m := &mmu.Memory{}
@@ -35,143 +35,265 @@ func (cpu *CPU) nop() {
  * 8-bit loads
  */
 
-// PutRIntoR puts the value stored in register from into register to.
-func (cpu *CPU) PutRIntoR(from, to Register) {
+func (cpu *CPU) load8(val uint8, dst *uint8) {
+	*dst = val
+
+	cpu.c.AddT(1)
+}
+
+// LoadAIntoA loads the contents of the accumulator into the accumulator.
+func (cpu *CPU) LoadAIntoA() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	cpu.load8(*acc, acc)
+}
+
+// LoadRIntoA loads the contents of the provided register into the accumulator.
+func (cpu *CPU) LoadRIntoA(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	a, _ := cpu.r.Auxiliary(r)
+	acc := cpu.r.Accumulator()
+	cpu.load8(*a, acc)
+}
+
+// LoadAIntoR loads the contents of the accumulator into the provided register.
+func (cpu *CPU) LoadAIntoR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.load8(*acc, a)
+}
+
+// LoadRIntoR loads the contents of register from into register to.
+func (cpu *CPU) LoadRIntoR(from, to Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	f, _ := cpu.r.Auxiliary(from)
 	t, _ := cpu.r.Auxiliary(to)
-	*t = *f
+	cpu.load8(*f, t)
 }
 
-// PutAIntoNNAddress calculates a 16-bit memory address by combining the two
-// 8-bit values that are stored in memory locations referenced by the program
-// counter and [PC+1].
-// It then saves the contents of register A into that address in memory.
-func (cpu *CPU) PutAIntoNNAddress() {
-	address := cpu.immediateWord()
-	cpu.putRegisterIntoMemory(RegisterA, address)
+// LoadNIntoA loads the contents of the memory address specified by the 8-bit
+// immediate operand into the accumulator.
+func (cpu *CPU) LoadNIntoA() {
+	cpu.r.IncrementProgramCounter(1)
+
+	n := cpu.memImmediateByte()
+	acc := cpu.r.Accumulator()
+	cpu.load8(n, acc)
 }
 
-// PutAIntoBCAddress puts the value stored in register from into the memory
-// location referenced by the BC register.
-func (cpu *CPU) PutAIntoBCAddress() {
-	cpu.putRegisterIntoAddressInRegister(RegisterBC, RegisterA)
+// LoadNIntoR loads the contents of the memory address specified by the 8-bit
+// immediate operand into the provided register.
+func (cpu *CPU) LoadNIntoR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	n := cpu.memImmediateByte()
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.load8(n, a)
 }
 
-// PutAIntoDEAddress puts the value stored in register from into the memory
-// location referenced by the DE register.
-func (cpu *CPU) PutAIntoDEAddress() {
-	cpu.putRegisterIntoAddressInRegister(RegisterDE, RegisterA)
+// LoadRRIntoA loads the contents of the memory address specified by the
+// provided paired register into the accumulator.
+func (cpu *CPU) LoadRRIntoA(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	pr, _ := cpu.r.Paired(rr)
+	val := cpu.memByte(pr)
+
+	acc := cpu.r.Accumulator()
+	cpu.load8(val, acc)
 }
 
-// PutRIntoHLAddress puts the value stored in register from into the memory
-// location referenced by the HL register.
-func (cpu *CPU) PutRIntoHLAddress(from Register) {
-	cpu.putRegisterIntoAddressInRegister(RegisterHL, from)
-}
+// LoadHLIntoR loads the contents of the memory address specified by register
+// HL into the provided register.
+func (cpu *CPU) LoadHLIntoR(r Register) {
+	cpu.r.IncrementProgramCounter(1)
 
-// PutAIntoHLAddressThenIncrementHL puts the value stored in register A into
-// the memory location referenced by the HL register, then increments register
-// HL.
-func (cpu *CPU) PutAIntoHLAddressThenIncrementHL() {
-	cpu.PutRIntoHLAddress(RegisterA)
-	cpu.incrementRegister(RegisterHL)
-}
-
-// PutAIntoHLAddressThenDecrementHL puts the value stored in register A into
-// the memory location referenced by the HL register, then increments register
-// HL.
-func (cpu *CPU) PutAIntoHLAddressThenDecrementHL() {
-	cpu.PutRIntoHLAddress(RegisterA)
-	cpu.decrementRegister(RegisterHL)
-}
-
-// PutAIntoOffsetCAddress puts the value stored in Register A into the offset
-// memory location resulting from the addition [C+0xFF00].
-func (cpu *CPU) PutAIntoOffsetCAddress() {
-	address := cpu.offsetAddressFromC()
-	cpu.putRegisterIntoMemory(RegisterA, address)
-}
-
-// PutAIntoOffsetImmediateAddress puts the value stored in Register A into the
-// offset memory location resulting from the addition [Memory[PC]+0xFF00].
-func (cpu *CPU) PutAIntoOffsetImmediateAddress() {
-	address := cpu.offsetAddressFromImmediate()
-	cpu.putRegisterIntoMemory(RegisterA, address)
-}
-
-// PutNIntoR puts the value stored in the memory location referenced by the
-// program counter into register to.
-func (cpu *CPU) PutNIntoR(to Register) {
-	n := cpu.immediateByte()
-	t, _ := cpu.r.Auxiliary(to)
-	*t = n
-}
-
-// PutNNDereferenceIntoA calculates a 16-bit memory address by combining the two
-// 8-bit values that are stored in memory locations referenced by the program
-// counter and [PC+1].
-// It then saves the contents of the memory at that address into register A.
-func (cpu *CPU) PutNNDereferenceIntoA() {
-	address := cpu.immediateWord()
-	cpu.putMemoryIntoRegister(address, RegisterA)
-}
-
-// PutOffsetCDereferenceIntoA puts the value stored in the offset memory
-// location resulting from the addition [C+0xFF00] into register A.
-func (cpu *CPU) PutOffsetCDereferenceIntoA() {
-	address := cpu.offsetAddressFromC()
-	cpu.putMemoryIntoRegister(address, RegisterA)
-}
-
-// PutOffsetImmediateDereferenceIntoA puts the value stored in the offset
-// memory location resulting from the addition [Memory[PC]+0xFF00] into
-// register A.
-func (cpu *CPU) PutOffsetImmediateDereferenceIntoA() {
-	address := cpu.offsetAddressFromImmediate()
-	cpu.putMemoryIntoRegister(address, RegisterA)
-}
-
-// PutBCDereferenceIntoA puts the value stored in the memory location referenced
-// by register BC into register A.
-func (cpu *CPU) PutBCDereferenceIntoA() {
-	cpu.putRegisterDereferenceIntoRegister(RegisterBC, RegisterA)
-}
-
-// PutDEDereferenceIntoA puts the value stored in the memory location referenced
-// by register DE into register A.
-func (cpu *CPU) PutDEDereferenceIntoA() {
-	cpu.putRegisterDereferenceIntoRegister(RegisterDE, RegisterA)
-}
-
-// PutHLDereferenceIntoR puts the value stored in the memory location referenced
-// by register HL into register r.
-func (cpu *CPU) PutHLDereferenceIntoR(to Register) {
-	cpu.putRegisterDereferenceIntoRegister(RegisterHL, to)
-}
-
-// PutHLDereferenceIntoAThenIncrementHL puts the value stored in the memory
-// location referenced by register HL into register A, then increments
-// register HL.
-func (cpu *CPU) PutHLDereferenceIntoAThenIncrementHL() {
-	cpu.PutHLDereferenceIntoR(RegisterA)
-	cpu.incrementRegister(RegisterHL)
-}
-
-// PutHLDereferenceIntoAThenDecrementHL puts the value stored in the memory
-// location referenced by register HL into register A, then increments
-// register HL.
-func (cpu *CPU) PutHLDereferenceIntoAThenDecrementHL() {
-	cpu.PutHLDereferenceIntoR(RegisterA)
-	cpu.decrementRegister(RegisterHL)
-}
-
-// PutNDereferenceIntoHLAddress puts the value stored in the memory location
-// referenced by the program counter into the memory location referenced by the
-// HL register.
-func (cpu *CPU) PutNDereferenceIntoHLAddress() {
-	n := cpu.immediateByte()
 	hl, _ := cpu.r.Paired(RegisterHL)
-	cpu.m.SetByte(hl, n)
+	val := cpu.memByte(hl)
+
+	a, _ := cpu.r.Auxiliary(r)
+	cpu.load8(val, a)
+}
+
+// LoadAIntoHL loads the contents of the accumulator into the memory address
+// specified by register HL.
+func (cpu *CPU) LoadAIntoHL() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	hl, _ := cpu.r.Paired(RegisterHL)
+
+	cpu.memStoreByte(hl, *acc)
+
+	cpu.c.AddT(1)
+}
+
+// LoadRIntoHL loads the contents of the provided register into the memory
+// address specified by register HL.
+func (cpu *CPU) LoadRIntoHL(r Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	a, _ := cpu.r.Auxiliary(r)
+	hl, _ := cpu.r.Paired(RegisterHL)
+
+	cpu.memStoreByte(hl, *a)
+
+	cpu.c.AddT(1)
+}
+
+// LoadNIntoHL loads the contents of the memory specified by the 8-bit immediate
+// operand into the memory address specified by register HL.
+func (cpu *CPU) LoadNIntoHL() {
+	cpu.r.IncrementProgramCounter(1)
+
+	n := cpu.memImmediateByte()
+
+	hl, _ := cpu.r.Paired(RegisterHL)
+	cpu.memStoreByte(hl, n)
+
+	cpu.c.AddT(1)
+}
+
+func (cpu *CPU) offsetC() uint16 {
+	c, _ := cpu.r.Auxiliary(RegisterC)
+	return cpu.offset(uint16(*c))
+}
+
+// LoadOffsetCIntoA loads the contents of the memory address specified by the
+// addition of register C and constant offset 0xFF00 into register A.
+func (cpu *CPU) LoadOffsetCIntoA() {
+	cpu.r.IncrementProgramCounter(1)
+
+	address := cpu.offsetC()
+	val := cpu.memByte(address)
+
+	acc := cpu.r.Accumulator()
+	cpu.load8(val, acc)
+}
+
+// LoadAIntoOffsetC loads the contents of register A into the memory address
+// specified by the addition of register C and constant offset 0xFF00.
+func (cpu *CPU) LoadAIntoOffsetC() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	address := cpu.offsetC()
+	cpu.memStoreByte(address, *acc)
+
+	cpu.c.AddT(1)
+}
+
+func (cpu *CPU) offsetImmediate() uint16 {
+	return cpu.offset(uint16(cpu.memImmediateByte()))
+}
+
+// LoadOffsetImmediateIntoA loads the contents of the memory address specified
+// by the addition of the 8-bit immediate operand and constant offset 0xFF00
+// into register A.
+func (cpu *CPU) LoadOffsetImmediateIntoA() {
+	cpu.r.IncrementProgramCounter(1)
+
+	address := cpu.offsetImmediate()
+	val := cpu.memByte(address)
+
+	acc := cpu.r.Accumulator()
+	cpu.load8(val, acc)
+}
+
+// LoadAIntoOffsetImmediate loads the contents of register A into the memory
+// address specified by the addition of the 8-bit immediate operand and constant
+// offset 0xFF00.
+func (cpu *CPU) LoadAIntoOffsetImmediate() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	address := cpu.offsetImmediate()
+	cpu.memStoreByte(address, *acc)
+
+	cpu.c.AddT(1)
+}
+
+// LoadNNIntoA loads the contents of the memory address specified by the 16-bit
+// immediate operand into register A.
+func (cpu *CPU) LoadNNIntoA() {
+	cpu.r.IncrementProgramCounter(1)
+
+	address := cpu.memImmediateWord()
+	acc := cpu.r.Accumulator()
+	cpu.memStoreByte(address, *acc)
+
+	cpu.c.AddT(1)
+}
+
+// LoadAIntoNN loads the contents of register A into the memory address
+// specified by the 16-bit immediate operand.
+func (cpu *CPU) LoadAIntoNN() {
+	cpu.r.IncrementProgramCounter(1)
+
+	address := cpu.memImmediateWord()
+	val := cpu.memByte(address)
+
+	acc := cpu.r.Accumulator()
+	cpu.load8(val, acc)
+}
+
+// LoadHLIntoAIncrementHL loads the contents of the memory address specified by
+// register HL into the accumulator. Register HL is then incremented.
+func (cpu *CPU) LoadHLIntoAIncrementHL() {
+	cpu.LoadRRIntoA(RegisterHL)
+	cpu.incrementRegister(RegisterHL)
+}
+
+// LoadHLIntoADecrementHL loads the contents of the memory address specified by
+// register HL into the accumulator. Register HL is then decremented.
+func (cpu *CPU) LoadHLIntoADecrementHL() {
+	cpu.LoadRRIntoA(RegisterHL)
+	cpu.decrementRegister(RegisterHL)
+}
+
+// LoadAIntoBC loads the contents of the accumulator into the memory address
+// specified by register BC.
+func (cpu *CPU) LoadAIntoBC() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	bc, _ := cpu.r.Paired(RegisterBC)
+
+	cpu.memStoreByte(bc, *acc)
+
+	cpu.c.AddT(1)
+}
+
+// LoadAIntoDE loads the contents of the accumulator into the memory address
+// specified by register DE.
+func (cpu *CPU) LoadAIntoDE() {
+	cpu.r.IncrementProgramCounter(1)
+
+	acc := cpu.r.Accumulator()
+	de, _ := cpu.r.Paired(RegisterDE)
+
+	cpu.memStoreByte(de, *acc)
+
+	cpu.c.AddT(1)
+}
+
+// LoadAIntoHLIncrementHL loads the contents of the accumulator into the memory
+// address specified by register HL. Register HL is then incremented.
+func (cpu *CPU) LoadAIntoHLIncrementHL() {
+	cpu.LoadAIntoHL()
+	cpu.incrementRegister(RegisterHL)
+}
+
+// LoadAIntoHLDecrementHL loads the contents of the accumulator into the memory
+// address specified by register HL. Register HL is then decremented.
+func (cpu *CPU) LoadAIntoHLDecrementHL() {
+	cpu.LoadAIntoHL()
+	cpu.decrementRegister(RegisterHL)
 }
 
 /**
@@ -569,9 +691,9 @@ func (cpu *CPU) CompareN() {
 	cpu.compare8Helper(cpu.immediateByte())
 }
 
-// CompareHLDereference subtracts the value stored in the memory location referenced
-// by register HL from the accumulator, discarding the result, and updates the
-// flags.
+// CompareHLDereference subtracts the value stored in the memory location
+// referenced by register HL from the accumulator, discarding the result, and
+// updates the flags.
 func (cpu *CPU) CompareHLDereference() {
 	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.compare8Helper(cpu.m.Byte(hl))
@@ -1321,25 +1443,36 @@ func (cpu *CPU) decrementRegister(r Register) {
 	cpu.r.DecrementPaired(r)
 }
 
-func (cpu *CPU) immediateByte() uint8 {
+func (cpu *CPU) offset(addr uint16) uint16 {
+	return addr + 0xFF00
+}
+
+func (cpu *CPU) memByte(addr uint16) uint8 {
+	val := cpu.m.Load(addr)
+
+	cpu.c.AddT(1)
+
+	return val
+}
+
+func (cpu *CPU) memImmediateByte() uint8 {
 	pc := cpu.r.ProgramCounter()
-	return cpu.m.Byte(*pc)
+	val := cpu.m.Load(*pc)
+
+	*pc++
+	cpu.c.AddT(1)
+
+	return val
 }
 
-func (cpu *CPU) immediateWord() uint16 {
-	pc := cpu.r.ProgramCounter()
-	return cpu.m.Word(*pc)
+func (cpu *CPU) memStoreByte(addr uint16, b uint8) {
+	cpu.m.Store(address, *acc)
+
+	cpu.c.AddT(1)
 }
 
-func (cpu *CPU) offsetAddressFromImmediate() uint16 {
-	return cpu.offsetAddress(uint16(cpu.immediateByte()))
-}
-
-func (cpu *CPU) offsetAddressFromC() uint16 {
-	c, _ := cpu.r.Auxiliary(RegisterC)
-	return cpu.offsetAddress(uint16(*c))
-}
-
-func (cpu *CPU) offsetAddress(address uint16) uint16 {
-	return address + 0xFF00
+func (cpu *CPU) memImmediateWord() uint16 {
+	lsb := cpu.memImmediateByte()
+	msb := cpu.memImmediateByte()
+	return uint16(msb)<<8 | uint16(lsb)
 }

@@ -24,71 +24,128 @@ var instructions = instructionSet{
 	 * 8-bit loads
 	 */
 
+	// Register (A, B, C, D, E, H, L) -> Register (A)
+	0x7F: &instruction{0x7F, 1, "LD A,A", func(cpu *CPU) { cpu.LoadAIntoA() }},
+	0x78: &instruction{0x78, 1, "LD A,B", func(cpu *CPU) { cpu.LoadRIntoA(RegisterB) }},
+	0x79: &instruction{0x79, 1, "LD A,C", func(cpu *CPU) { cpu.LoadRIntoA(RegisterC) }},
+	0x7A: &instruction{0x7A, 1, "LD A,D", func(cpu *CPU) { cpu.LoadRIntoA(RegisterD) }},
+	0x7B: &instruction{0x7B, 1, "LD A,E", func(cpu *CPU) { cpu.LoadRIntoA(RegisterE) }},
+	0x7C: &instruction{0x7C, 1, "LD A,H", func(cpu *CPU) { cpu.LoadRIntoA(RegisterH) }},
+	0x7D: &instruction{0x7D, 1, "LD A,L", func(cpu *CPU) { cpu.LoadRIntoA(RegisterL) }},
+
 	// Register (A, B, C, D, E, H, L) -> Register (B)
-	0x47: &instruction{0x47, 1, "LD B,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterB) }},
-	0x40: &instruction{0x40, 1, "LD B,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterB) }},
-	0x41: &instruction{0x41, 1, "LD B,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterB) }},
-	0x42: &instruction{0x42, 1, "LD B,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterB) }},
-	0x43: &instruction{0x43, 1, "LD B,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterB) }},
-	0x44: &instruction{0x44, 1, "LD B,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterB) }},
-	0x45: &instruction{0x45, 1, "LD B,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterB) }},
+	0x47: &instruction{0x47, 1, "LD B,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterB) }},
+	0x40: &instruction{0x40, 1, "LD B,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterB) }},
+	0x41: &instruction{0x41, 1, "LD B,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterB) }},
+	0x42: &instruction{0x42, 1, "LD B,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterB) }},
+	0x43: &instruction{0x43, 1, "LD B,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterB) }},
+	0x44: &instruction{0x44, 1, "LD B,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterB) }},
+	0x45: &instruction{0x45, 1, "LD B,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterB) }},
 
 	// Register (A, B, C, D, E, H, L) -> Register (C)
-	0x4F: &instruction{0x4F, 1, "LD C,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterC) }},
-	0x48: &instruction{0x48, 1, "LD C,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterC) }},
-	0x49: &instruction{0x49, 1, "LD C,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterC) }},
-	0x4A: &instruction{0x4A, 1, "LD C,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterC) }},
-	0x4B: &instruction{0x4B, 1, "LD C,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterC) }},
-	0x4C: &instruction{0x4C, 1, "LD C,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterC) }},
-	0x4D: &instruction{0x4D, 1, "LD C,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterC) }},
+	0x4F: &instruction{0x4F, 1, "LD C,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterC) }},
+	0x48: &instruction{0x48, 1, "LD C,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterC) }},
+	0x49: &instruction{0x49, 1, "LD C,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterC) }},
+	0x4A: &instruction{0x4A, 1, "LD C,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterC) }},
+	0x4B: &instruction{0x4B, 1, "LD C,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterC) }},
+	0x4C: &instruction{0x4C, 1, "LD C,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterC) }},
+	0x4D: &instruction{0x4D, 1, "LD C,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterC) }},
 
 	// Register (A, B, C, D, E, H, L) -> Register (D)
-	0x57: &instruction{0x57, 1, "LD D,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterD) }},
-	0x50: &instruction{0x50, 1, "LD D,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterD) }},
-	0x51: &instruction{0x51, 1, "LD D,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterD) }},
-	0x52: &instruction{0x52, 1, "LD D,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterD) }},
-	0x53: &instruction{0x53, 1, "LD D,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterD) }},
-	0x54: &instruction{0x54, 1, "LD D,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterD) }},
-	0x55: &instruction{0x55, 1, "LD D,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterD) }},
+	0x57: &instruction{0x57, 1, "LD D,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterD) }},
+	0x50: &instruction{0x50, 1, "LD D,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterD) }},
+	0x51: &instruction{0x51, 1, "LD D,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterD) }},
+	0x52: &instruction{0x52, 1, "LD D,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterD) }},
+	0x53: &instruction{0x53, 1, "LD D,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterD) }},
+	0x54: &instruction{0x54, 1, "LD D,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterD) }},
+	0x55: &instruction{0x55, 1, "LD D,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterD) }},
 
 	// Register (A, B, C, D, E, H, L) -> Register (E)
-	0x5F: &instruction{0x5F, 1, "LD E,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterE) }},
-	0x58: &instruction{0x58, 1, "LD E,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterE) }},
-	0x59: &instruction{0x59, 1, "LD E,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterE) }},
-	0x5A: &instruction{0x5A, 1, "LD E,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterE) }},
-	0x5B: &instruction{0x5B, 1, "LD E,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterE) }},
-	0x5C: &instruction{0x5C, 1, "LD E,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterE) }},
-	0x5D: &instruction{0x5D, 1, "LD E,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterE) }},
+	0x5F: &instruction{0x5F, 1, "LD E,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterE) }},
+	0x58: &instruction{0x58, 1, "LD E,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterE) }},
+	0x59: &instruction{0x59, 1, "LD E,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterE) }},
+	0x5A: &instruction{0x5A, 1, "LD E,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterE) }},
+	0x5B: &instruction{0x5B, 1, "LD E,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterE) }},
+	0x5C: &instruction{0x5C, 1, "LD E,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterE) }},
+	0x5D: &instruction{0x5D, 1, "LD E,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterE) }},
 
 	// Register (A, B, C, D, E, H, L) -> Register (H)
-	0x67: &instruction{0x67, 1, "LD H,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterH) }},
-	0x60: &instruction{0x60, 1, "LD H,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterH) }},
-	0x61: &instruction{0x61, 1, "LD H,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterH) }},
-	0x62: &instruction{0x62, 1, "LD H,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterH) }},
-	0x63: &instruction{0x63, 1, "LD H,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterH) }},
-	0x64: &instruction{0x64, 1, "LD H,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterH) }},
-	0x65: &instruction{0x65, 1, "LD H,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterH) }},
+	0x67: &instruction{0x67, 1, "LD H,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterH) }},
+	0x60: &instruction{0x60, 1, "LD H,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterH) }},
+	0x61: &instruction{0x61, 1, "LD H,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterH) }},
+	0x62: &instruction{0x62, 1, "LD H,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterH) }},
+	0x63: &instruction{0x63, 1, "LD H,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterH) }},
+	0x64: &instruction{0x64, 1, "LD H,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterH) }},
+	0x65: &instruction{0x65, 1, "LD H,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterH) }},
 
 	// Register (A, B, C, D, E, H, L) -> Register (L)
-	0x6F: &instruction{0x6F, 1, "LD L,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterL) }},
-	0x68: &instruction{0x68, 1, "LD L,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterL) }},
-	0x69: &instruction{0x69, 1, "LD L,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterL) }},
-	0x6A: &instruction{0x6A, 1, "LD L,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterL) }},
-	0x6B: &instruction{0x6B, 1, "LD L,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterL) }},
-	0x6C: &instruction{0x6C, 1, "LD L,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterL) }},
-	0x6D: &instruction{0x6D, 1, "LD L,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterL) }},
+	0x6F: &instruction{0x6F, 1, "LD L,A", func(cpu *CPU) { cpu.LoadAIntoR(RegisterL) }},
+	0x68: &instruction{0x68, 1, "LD L,B", func(cpu *CPU) { cpu.LoadRIntoR(RegisterB, RegisterL) }},
+	0x69: &instruction{0x69, 1, "LD L,C", func(cpu *CPU) { cpu.LoadRIntoR(RegisterC, RegisterL) }},
+	0x6A: &instruction{0x6A, 1, "LD L,D", func(cpu *CPU) { cpu.LoadRIntoR(RegisterD, RegisterL) }},
+	0x6B: &instruction{0x6B, 1, "LD L,E", func(cpu *CPU) { cpu.LoadRIntoR(RegisterE, RegisterL) }},
+	0x6C: &instruction{0x6C, 1, "LD L,H", func(cpu *CPU) { cpu.LoadRIntoR(RegisterH, RegisterL) }},
+	0x6D: &instruction{0x6D, 1, "LD L,L", func(cpu *CPU) { cpu.LoadRIntoR(RegisterL, RegisterL) }},
 
-	// Register (A, B, C, D, E, H, L) -> Register (A)
-	0x7F: &instruction{0x7F, 1, "LD A,A", func(cpu *CPU) { cpu.PutRIntoR(RegisterA, RegisterA) }},
-	0x78: &instruction{0x78, 1, "LD A,B", func(cpu *CPU) { cpu.PutRIntoR(RegisterB, RegisterA) }},
-	0x79: &instruction{0x79, 1, "LD A,C", func(cpu *CPU) { cpu.PutRIntoR(RegisterC, RegisterA) }},
-	0x7A: &instruction{0x7A, 1, "LD A,D", func(cpu *CPU) { cpu.PutRIntoR(RegisterD, RegisterA) }},
-	0x7B: &instruction{0x7B, 1, "LD A,E", func(cpu *CPU) { cpu.PutRIntoR(RegisterE, RegisterA) }},
-	0x7C: &instruction{0x7C, 1, "LD A,H", func(cpu *CPU) { cpu.PutRIntoR(RegisterH, RegisterA) }},
-	0x7D: &instruction{0x7D, 1, "LD A,L", func(cpu *CPU) { cpu.PutRIntoR(RegisterL, RegisterA) }},
+	// Memory[PC] -> Register (A, B, C, D, E, H, L)
+	0x3E: &instruction{0x3E, 2, "LD A,d8", func(cpu *CPU) { cpu.LoadNIntoA() }},
+	0x06: &instruction{0x06, 2, "LD B,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterB) }},
+	0x0E: &instruction{0x0E, 2, "LD C,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterC) }},
+	0x16: &instruction{0x16, 2, "LD D,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterD) }},
+	0x1E: &instruction{0x1E, 2, "LD E,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterE) }},
+	0x26: &instruction{0x26, 2, "LD H,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterH) }},
+	0x2E: &instruction{0x2E, 2, "LD L,d8", func(cpu *CPU) { cpu.LoadNIntoR(RegisterL) }},
+
+	// Memory[HL] -> Register (A, B, C, D, E, H, L)
+	0x7E: &instruction{0x7E, 2, "LD A,(HL)", func(cpu *CPU) { cpu.LoadRRIntoA(RegisterHL) }},
+	0x46: &instruction{0x46, 2, "LD B,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterB) }},
+	0x4E: &instruction{0x4E, 2, "LD C,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterC) }},
+	0x56: &instruction{0x56, 2, "LD D,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterD) }},
+	0x5E: &instruction{0x5E, 2, "LD E,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterE) }},
+	0x66: &instruction{0x66, 2, "LD H,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterH) }},
+	0x6E: &instruction{0x6E, 2, "LD L,(HL)", func(cpu *CPU) { cpu.LoadHLIntoR(RegisterL) }},
+
+	// Register (A, B, C, D, E, H, L) -> Memory[HL]
+	0x77: &instruction{0x77, 2, "LD (HL),A", func(cpu *CPU) { cpu.LoadAIntoHL() }},
+	0x70: &instruction{0x70, 2, "LD (HL),B", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterB) }},
+	0x71: &instruction{0x71, 2, "LD (HL),C", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterC) }},
+	0x72: &instruction{0x72, 2, "LD (HL),D", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterD) }},
+	0x73: &instruction{0x73, 2, "LD (HL),E", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterE) }},
+	0x74: &instruction{0x74, 2, "LD (HL),H", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterH) }},
+	0x75: &instruction{0x75, 2, "LD (HL),L", func(cpu *CPU) { cpu.LoadRIntoHL(RegisterL) }},
+
+	// Memory[PC] -> Memory[HL]
+	0x36: &instruction{0x36, 3, "LD (HL),d8", func(cpu *CPU) { cpu.LoadNIntoHL() }},
+
+	// Memory[BC] -> Register (A)
+	0x0A: &instruction{0x0A, 2, "LD A,(BC)", func(cpu *CPU) { cpu.LoadRRIntoA(RegisterBC) }},
+
+	// Memory[DE] -> Register (A)
+	0x1A: &instruction{0x1A, 2, "LD A,(DE)", func(cpu *CPU) { cpu.LoadRRIntoA(RegisterDE) }},
+
+	// Memory[C+0xFF00] -> Register A
+	0xF2: &instruction{0xF2, 2, "LD A,(C)", func(cpu *CPU) { cpu.LoadOffsetCIntoA() }},
+
+	// Register (A) -> Memory[C+0xFF0]
+	0xE2: &instruction{0xE2, 2, "LD (C),A", func(cpu *CPU) { cpu.LoadAIntoOffsetC() }},
+
+	// Register (A) -> Memory[Memory[PC]+0xFF00]
+	0xE0: &instruction{0xE0, 3, "LD (a8),A", func(cpu *CPU) { cpu.LoadAIntoOffsetImmediate() }},
+
+	// Memory[Memory[PC]+0xFF00] -> Register (A)
+	0xF0: &instruction{0xF0, 3, "LDH A,(a8)", func(cpu *CPU) { cpu.LoadOffsetImmediateIntoA() }},
+
+	// Memory[Memory[PC and PC+1]] -> Register (A)
+	0xFA: &instruction{0xFA, 4, "LD A,(a16)", func(cpu *CPU) { cpu.LoadNNIntoA() }},
 
 	// Register (A) -> Memory[Memory[PC and PC+1]]
-	0xEA: &instruction{0xEA, 4, "LD (a16),A", func(cpu *CPU) { cpu.PutAIntoNNAddress() }},
+	0xEA: &instruction{0xEA, 4, "LD (a16),A", func(cpu *CPU) { cpu.LoadAIntoNN() }},
+
+	// Memory[HL++] -> Register (A)
+	0x2A: &instruction{0x2A, 2, "LD A,(HL+)", func(cpu *CPU) { cpu.LoadHLIntoAIncrementHL() }},
+
+	// Memory[HL--] -> Register (A)
+	0x3A: &instruction{0x3A, 2, "LD A,(HL-)", func(cpu *CPU) { cpu.LoadHLIntoADecrementHL() }},
 
 	// Register (A) -> Memory[BC]
 	0x02: &instruction{0x02, 2, "LD (BC),A", func(cpu *CPU) { cpu.PutAIntoBCAddress() }},
@@ -96,68 +153,11 @@ var instructions = instructionSet{
 	// Register (A) -> Memory[DE]
 	0x12: &instruction{0x12, 2, "LD (DE),A", func(cpu *CPU) { cpu.PutAIntoDEAddress() }},
 
-	// Register (A, B, C, D, E, H, L) -> Memory[HL]
-	0x77: &instruction{0x77, 2, "LD (HL),A", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterA) }},
-	0x70: &instruction{0x70, 2, "LD (HL),B", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterB) }},
-	0x71: &instruction{0x71, 2, "LD (HL),C", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterC) }},
-	0x72: &instruction{0x72, 2, "LD (HL),D", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterD) }},
-	0x73: &instruction{0x73, 2, "LD (HL),E", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterE) }},
-	0x74: &instruction{0x74, 2, "LD (HL),H", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterH) }},
-	0x75: &instruction{0x75, 2, "LD (HL),L", func(cpu *CPU) { cpu.PutRIntoHLAddress(RegisterL) }},
-
 	// Register (A) -> Memory[HL++]
-	0x22: &instruction{0x22, 2, "LD (HL+),A", func(cpu *CPU) { cpu.PutAIntoHLAddressThenIncrementHL() }},
+	0x22: &instruction{0x22, 2, "LD (HL+),A", func(cpu *CPU) { cpu.LoadAIntoHLIncrementHL() }},
 
 	// Register (A) -> Memory[HL--]
-	0x32: &instruction{0x32, 2, "LD (HL-),A", func(cpu *CPU) { cpu.PutAIntoHLAddressThenDecrementHL() }},
-
-	// Register (A) -> Memory[C+0xFF0]
-	0xE2: &instruction{0xE2, 2, "LD (C),A", func(cpu *CPU) { cpu.PutAIntoOffsetCAddress() }},
-
-	// Register (A) -> Memory[Memory[PC]+0xFF00]
-	0xE0: &instruction{0xE0, 3, "LD (a8),A", func(cpu *CPU) { cpu.PutAIntoOffsetImmediateAddress() }},
-
-	// Memory[PC] -> Register (B, C, D, E, H, L, A)
-	0x3E: &instruction{0x3E, 2, "LD A,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterA) }},
-	0x06: &instruction{0x06, 2, "LD B,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterB) }},
-	0x0E: &instruction{0x0E, 2, "LD C,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterC) }},
-	0x16: &instruction{0x16, 2, "LD D,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterD) }},
-	0x1E: &instruction{0x1E, 2, "LD E,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterE) }},
-	0x26: &instruction{0x26, 2, "LD H,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterH) }},
-	0x2E: &instruction{0x2E, 2, "LD L,d8", func(cpu *CPU) { cpu.PutNIntoR(RegisterL) }},
-
-	// Memory[Memory[PC and PC+1]] -> Register (A)
-	0xFA: &instruction{0xFA, 4, "LD A,(a16)", func(cpu *CPU) { cpu.PutNNDereferenceIntoA() }},
-
-	// Memory[C+0xFF00] -> Register A
-	0xF2: &instruction{0xF2, 2, "LD A,(C)", func(cpu *CPU) { cpu.PutOffsetCDereferenceIntoA() }},
-
-	// Memory[Memory[PC]+0xFF00] -> Register (A)
-	0xF0: &instruction{0xF0, 3, "LDH A,(a8)", func(cpu *CPU) { cpu.PutOffsetImmediateDereferenceIntoA() }},
-
-	// Memory[BC] -> Register (A)
-	0x0A: &instruction{0x0A, 2, "LD A,(BC)", func(cpu *CPU) { cpu.PutBCDereferenceIntoA() }},
-
-	// Memory[DE] -> Register (A)
-	0x1A: &instruction{0x1A, 2, "LD A,(DE)", func(cpu *CPU) { cpu.PutDEDereferenceIntoA() }},
-
-	// Memory[HL] -> Register (B, C, D, E, H, L, A)
-	0x7E: &instruction{0x7E, 2, "LD A,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterA) }},
-	0x46: &instruction{0x46, 2, "LD B,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterB) }},
-	0x4E: &instruction{0x4E, 2, "LD C,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterC) }},
-	0x56: &instruction{0x56, 2, "LD D,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterD) }},
-	0x5E: &instruction{0x5E, 2, "LD E,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterE) }},
-	0x66: &instruction{0x66, 2, "LD H,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterH) }},
-	0x6E: &instruction{0x6E, 2, "LD L,(HL)", func(cpu *CPU) { cpu.PutHLDereferenceIntoR(RegisterL) }},
-
-	// Memory[HL++] -> Register (A)
-	0x2A: &instruction{0x2A, 2, "LD A,(HL+)", func(cpu *CPU) { cpu.PutHLDereferenceIntoAThenIncrementHL() }},
-
-	// Memory[HL--] -> Register (A)
-	0x3A: &instruction{0x3A, 2, "LD A,(HL-)", func(cpu *CPU) { cpu.PutHLDereferenceIntoAThenDecrementHL() }},
-
-	// Memory[PC] -> Memory[HL]
-	0x36: &instruction{0x36, 3, "LD (HL),d8", func(cpu *CPU) { cpu.PutNDereferenceIntoHLAddress() }},
+	0x32: &instruction{0x32, 2, "LD (HL-),A", func(cpu *CPU) { cpu.LoadAIntoHLDecrementHL() }},
 
 	/**
 	 * 16-bit loads

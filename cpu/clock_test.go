@@ -5,30 +5,60 @@ import (
 	"testing"
 )
 
-var clockTests = []struct {
-	inT  uint8
-	outT uint8
-	outM uint8
-}{
-	{1, 1, 4},
-	{2, 2, 8},
-	{3, 3, 12},
-	{4, 4, 16},
-}
+func TestSetT(t *testing.T) {
+	var testCases = []struct {
+		inT  uint64
+		outT uint64
+		outM uint64
+	}{
+		{1, 1, 4},
+		{2, 2, 8},
+		{3, 3, 12},
+		{4, 4, 16},
+	}
 
-func TestClock(t *testing.T) {
-	for _, tt := range clockTests {
-		clock := clock{}
+	for _, tc := range testCases {
+		clock := NewClock(0)
 
-		t.Run(fmt.Sprintf("t=%d", tt.inT), func(t *testing.T) {
-			clock.SetT(tt.inT)
+		t.Run(fmt.Sprintf("t=%d", tc.inT), func(t *testing.T) {
+			clock.SetT(tc.inT)
 
-			if clock.T() != tt.outT {
-				t.Errorf("got %d, expected %d", clock.T(), tt.outT)
+			if clock.T() != tc.outT {
+				t.Errorf("got %d, expected %d", clock.T(), tc.outT)
 			}
 
-			if clock.M() != tt.outM {
-				t.Errorf("got %d, expected %d", clock.M(), tt.outM)
+			if clock.M() != tc.outM {
+				t.Errorf("got %d, expected %d", clock.M(), tc.outM)
+			}
+		})
+	}
+}
+
+func TestAddT(t *testing.T) {
+	var testCases = []struct {
+		baseClock *Clock
+		addT1     uint64
+		addT2     uint64
+		outT      uint64
+		outM      uint64
+	}{
+		{NewClock(0), 2, 3, 5, 20},
+		{NewClock(1000), 1, 2, 1003, 4012},
+		{NewClock(2000), 0, 0, 2000, 8000},
+		{NewClock(3000), 23, 0, 3023, 12092},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("baseClock=%s addT1=%d addT2=%d", tc.baseClock, tc.addT1, tc.addT2), func(t *testing.T) {
+			tc.baseClock.AddT(tc.addT1)
+			tc.baseClock.AddT(tc.addT2)
+
+			if tc.baseClock.T() != tc.outT {
+				t.Errorf("got %d, expected %d", tc.baseClock.T(), tc.outT)
+			}
+
+			if tc.baseClock.M() != tc.outM {
+				t.Errorf("got %d, expected %d", tc.baseClock.M(), tc.outM)
 			}
 		})
 	}

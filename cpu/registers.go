@@ -165,6 +165,12 @@ func (r *Registers) ProgramCounter() *uint16 {
 	return r.pc
 }
 
+// IncrementProgramCounter increments the program counter register by the
+// provided amount.
+func (r *Registers) IncrementProgramCounter(y uint16) {
+	*r.pc += y
+}
+
 // IsFlagSet returns whether flag is set or not and an error, if encountered.
 func (r *Registers) IsFlagSet(flag Flag) (bool, error) {
 	return r.f.IsSet(flag)
