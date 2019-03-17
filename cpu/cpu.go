@@ -300,11 +300,31 @@ func (cpu *CPU) LoadAIntoHLDecrementHL() {
  * 16-bit loads
  */
 
-// PutHLIntoSP puts the value stored in register HL into register SP.
-func (cpu *CPU) PutHLIntoSP() {
+func (cpu *CPU) load16(val uint16, rr Register) {
+	cpu.r.SetPaired(rr, val)
+
+	cpu.c.AddT(1)
+}
+
+// LoadNNIntoRR loads the 16-bit immediate operand into the provided paired
+// register.
+func (cpu *CPU) LoadNNIntoRR(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	val := cpu.memImmediateWord()
+	cpu.load16(val, rr)
+}
+
+// LoadHLIntoSP loads the contents of register HL into the stack pointer
+// register.
+func (cpu *CPU) LoadHLIntoSP() {
+	cpu.r.IncrementProgramCounter(1)
+
 	hl, _ := cpu.r.Paired(RegisterHL)
 	sp := cpu.r.StackPointer()
 	*sp = hl
+
+	cpu.c.AddT(2)
 }
 
 // Pushes the provided word onto the stack, then decrements the stack pointer
@@ -314,37 +334,26 @@ func (cpu *CPU) PutHLIntoSP() {
 func (cpu *CPU) pushWordOntoStack(word uint16) {
 	sp := cpu.r.StackPointer()
 	*sp -= 2
-	cpu.m.SetWord(*sp, word)
+	cpu.memStoreWord(*sp, word)
 }
 
-// PushAFOntoStack pushes the combined value stored in registers A and F onto
-// the stack.
+// PushAFOntoStack pushes the paired register AF onto the stack.
 func (cpu *CPU) PushAFOntoStack() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.pushWordOntoStack(cpu.r.AF())
+
+	cpu.c.AddT(2)
 }
 
-// PushRROntoStack pushes the contents of paired register from onto the stack.
-func (cpu *CPU) PushRROntoStack(from Register) {
-	word, _ := cpu.r.Paired(from)
+// PushRROntoStack pushes the contents of the provided paired register onto the stack.
+func (cpu *CPU) PushRROntoStack(rr Register) {
+	cpu.r.IncrementProgramCounter(1)
+
+	word, _ := cpu.r.Paired(rr)
 	cpu.pushWordOntoStack(word)
-}
 
-// PutSPIntoNNAddress puts the value stored in register SP into the memory
-// locations referenced by the program counter and [PC+1].
-func (cpu *CPU) PutSPIntoNNAddress() {
-	address := cpu.immediateWord()
-	sp := cpu.r.StackPointer()
-	cpu.m.SetWord(address, *sp)
-}
-
-// PutOffsetSPIntoHL puts the value resulting from the addition [SP+Memory[PC]]
-// into register HL, with the value fetched from memory being treated as a
-// signed integer. Flags are updated accordingly.
-func (cpu *CPU) PutOffsetSPIntoHL() {
-	sp := cpu.r.StackPointer()
-	pc := cpu.r.ProgramCounter()
-	offset := cpu.add16S8(*sp, cpu.m.Byte(*pc))
-	cpu.r.SetPaired(RegisterHL, offset)
+	cpu.c.AddT(2)
 }
 
 // Pops a word from the stack, then increments the stack pointer by 2.
@@ -352,29 +361,54 @@ func (cpu *CPU) PutOffsetSPIntoHL() {
 // The 8 least significant bits of the word come from Memory[SP].
 func (cpu *CPU) popStack() uint16 {
 	sp := cpu.r.StackPointer()
-	val := cpu.m.Word(*sp)
+	val := cpu.memWord(*sp)
 	*sp += 2
+
 	return val
 }
 
-// PopStackIntoAF pops a word from the stack and puts it into registers A and F.
+// PopStackIntoAF pops a word from the stack and loads it into paired
+// register AF.
 func (cpu *CPU) PopStackIntoAF() {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.SetAF(cpu.popStack())
+
+	cpu.c.AddT(1)
 }
 
-// PopStackIntoRR pops a word from the stack and puts it into the provided
-// register pair.
+// PopStackIntoRR pops a word from the stack and loads it into the provided
+// paired register.
 func (cpu *CPU) PopStackIntoRR(to Register) {
+	cpu.r.IncrementProgramCounter(1)
+
 	cpu.r.SetPaired(to, cpu.popStack())
+
+	cpu.c.AddT(1)
 }
 
-// PutNNIntoRR calculates a 16-bit value by combining the two 8-bit
-// values that are stored in memory locations referenced by the program
-// counter and [PC+1].
-// It then saves that value into register to.
-func (cpu *CPU) PutNNIntoRR(to Register) {
-	val := cpu.immediateWord()
-	cpu.r.SetPaired(to, val)
+// LoadOffsetSPIntoHL loads the result of adding the stack pointer register and
+// 8-bit operand together, with the operand being treated as a signed integer,
+// into register HL. Flags are updated accordingly.
+func (cpu *CPU) LoadOffsetSPIntoHL() {
+	cpu.r.IncrementProgramCounter(1)
+
+	sp := cpu.r.StackPointer()
+	b := cpu.memImmediateByte()
+	offsetSP := cpu.add16S8(*sp, b)
+	cpu.r.SetPaired(RegisterHL, offsetSP)
+}
+
+// LoadSPIntoNN loads the stack pointer register into the memory address
+// specified by the immediate 16-bit operand.
+func (cpu *CPU) LoadSPIntoNN() {
+	cpu.r.IncrementProgramCounter(1)
+
+	address := cpu.memImmediateWord()
+	sp := cpu.r.StackPointer()
+	cpu.memStoreWord(address, *sp)
+
+	cpu.c.AddT(1)
 }
 
 /**
@@ -904,6 +938,8 @@ func (cpu *CPU) add16S8(x uint16, y uint8) (result uint16) {
 
 	result = cpu.add16(x, yy)
 	cpu.r.ResetFlag(FlagZ)
+
+	cpu.c.AddT(1)
 
 	return result
 }
@@ -1471,8 +1507,22 @@ func (cpu *CPU) memStoreByte(addr uint16, b uint8) {
 	cpu.c.AddT(1)
 }
 
+func (cpu *CPU) memWord(addr uint16) uint16 {
+	lsb := cpu.memByte(addr)
+	msb := cpu.memByte(addr + 1)
+
+	return uint16(msb)<<8 | uint16(lsb)
+}
+
 func (cpu *CPU) memImmediateWord() uint16 {
 	lsb := cpu.memImmediateByte()
 	msb := cpu.memImmediateByte()
 	return uint16(msb)<<8 | uint16(lsb)
+}
+
+func (cpu *CPU) memStoreWord(addr uint16, w uint16) {
+	lsb := uint8(w)
+	msb := uint8(w >> 8)
+	cpu.memStoreByte(addr, lsb)
+	cpu.memStoreByte(addr+1, msb)
 }

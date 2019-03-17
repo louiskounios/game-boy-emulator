@@ -163,11 +163,14 @@ var instructions = instructionSet{
 	 * 16-bit loads
 	 */
 
-	// Register (HL) -> Register (SP)
-	0xF9: &instruction{0xF9, 2, "LD SP,HL", func(cpu *CPU) { cpu.PutHLIntoSP() }},
+	// Memory[PC and PC+1] -> Register (BC, DE, HL, SP)
+	0x01: &instruction{0x01, 3, "LD BC,d16", func(cpu *CPU) { cpu.LoadNNIntoRR(RegisterBC) }},
+	0x11: &instruction{0x11, 3, "LD DE,d16", func(cpu *CPU) { cpu.LoadNNIntoRR(RegisterDE) }},
+	0x21: &instruction{0x21, 3, "LD HL,d16", func(cpu *CPU) { cpu.LoadNNIntoRR(RegisterHL) }},
+	0x31: &instruction{0x31, 3, "LD SP,d16", func(cpu *CPU) { cpu.LoadNNIntoRR(RegisterSP) }},
 
-	// Register (SP) -> Memory[PC and PC+1]
-	0x08: &instruction{0x08, 5, "LD (a16),SP", func(cpu *CPU) { cpu.PutSPIntoNNAddress() }},
+	// Register (HL) -> Register (SP)
+	0xF9: &instruction{0xF9, 2, "LD SP,HL", func(cpu *CPU) { cpu.LoadHLIntoSP() }},
 
 	// Register (AF, BC, DE, HL) -> Memory[--SP and --SP]
 	0xF5: &instruction{0xF5, 4, "PUSH AF", func(cpu *CPU) { cpu.PushAFOntoStack() }},
@@ -181,14 +184,11 @@ var instructions = instructionSet{
 	0xD1: &instruction{0xD1, 3, "POP DE", func(cpu *CPU) { cpu.PopStackIntoRR(RegisterDE) }},
 	0xE1: &instruction{0xE1, 3, "POP HL", func(cpu *CPU) { cpu.PopStackIntoRR(RegisterHL) }},
 
-	// Memory[PC and PC+1] -> Register (BC, DE, HL, SP)
-	0x01: &instruction{0x01, 3, "LD BC,d16", func(cpu *CPU) { cpu.PutNNIntoRR(RegisterBC) }},
-	0x11: &instruction{0x11, 3, "LD DE,d16", func(cpu *CPU) { cpu.PutNNIntoRR(RegisterDE) }},
-	0x21: &instruction{0x21, 3, "LD HL,d16", func(cpu *CPU) { cpu.PutNNIntoRR(RegisterHL) }},
-	0x31: &instruction{0x31, 3, "LD SP,d16", func(cpu *CPU) { cpu.PutNNIntoRR(RegisterSP) }},
-
 	// Register (HL) <- Register (SP) + Memory[PC]
-	0xF8: &instruction{0xF8, 3, "LD HL,SP+r8", func(cpu *CPU) { cpu.PutOffsetSPIntoHL() }},
+	0xF8: &instruction{0xF8, 3, "LD HL,SP+r8", func(cpu *CPU) { cpu.LoadOffsetSPIntoHL() }},
+
+	// Register (SP) -> Memory[PC and PC+1]
+	0x08: &instruction{0x08, 5, "LD (a16),SP", func(cpu *CPU) { cpu.LoadSPIntoNN() }},
 
 	/**
 	 * 8-bit arithmetic / logical operations
