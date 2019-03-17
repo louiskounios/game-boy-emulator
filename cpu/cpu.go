@@ -27,8 +27,10 @@ func New() *CPU {
 	}
 }
 
-func (cpu *CPU) nop() {
-
+// Nop does nothing.
+func (cpu *CPU) Nop() {
+	cpu.r.IncrementProgramCounter(1)
+	cpu.c.AddT(1)
 }
 
 /**
@@ -621,6 +623,8 @@ func (cpu *CPU) and8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
+	cpu.c.AddT(1)
+
 	return result
 }
 
@@ -670,6 +674,8 @@ func (cpu *CPU) xor8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
+	cpu.c.AddT(1)
+
 	return result
 }
 
@@ -718,6 +724,8 @@ func (cpu *CPU) or8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
+
+	cpu.c.AddT(1)
 
 	return result
 }

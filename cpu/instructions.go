@@ -21,6 +21,28 @@ func (i instruction) String() string {
 
 var instructions = instructionSet{
 	/**
+	 * Misc / control instructions
+	 */
+
+	0x00: &instruction{0x00, 1, "NOP", func(cpu *CPU) { cpu.Nop() }},
+	0x10: &instruction{0x10, 1, "STOP 0", func(cpu *CPU) { cpu.Nop() }},
+	0x76: &instruction{0x76, 1, "HALT", func(cpu *CPU) { cpu.Nop() }},
+	0xCB: &instruction{0xCB, 1, "PREFIX CB", func(cpu *CPU) { cpu.Nop() }},
+	0xF3: &instruction{0xF3, 1, "DI", func(cpu *CPU) { cpu.Nop() }},
+	0xFB: &instruction{0xFB, 1, "EI", func(cpu *CPU) { cpu.Nop() }},
+	0xD3: &instruction{0xD3, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xDB: &instruction{0xDB, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xDD: &instruction{0xDD, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xE3: &instruction{0xE3, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xE4: &instruction{0xE4, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xEB: &instruction{0xEB, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xEC: &instruction{0xEC, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xED: &instruction{0xED, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xF4: &instruction{0xF4, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xFC: &instruction{0xFC, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+	0xFD: &instruction{0xFD, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
+
+	/**
 	 * 8-bit loads
 	 */
 
