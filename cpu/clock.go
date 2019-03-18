@@ -14,6 +14,11 @@ func NewClock(m uint64) *Clock {
 	return &Clock{m: m}
 }
 
+// Reset sets the machine cycles and clock periods to 0.
+func (c *Clock) Reset() {
+	c.SetM(0)
+}
+
 // M returns the current amount of machine cycles.
 func (c *Clock) M() uint64 {
 	return c.m
