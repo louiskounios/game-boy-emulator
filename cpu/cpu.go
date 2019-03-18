@@ -30,7 +30,7 @@ func New() *CPU {
 // Nop does nothing.
 func (cpu *CPU) Nop() {
 	cpu.r.IncrementProgramCounter(1)
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 /**
@@ -40,7 +40,7 @@ func (cpu *CPU) Nop() {
 func (cpu *CPU) load8(val uint8, dst *uint8) {
 	*dst = val
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadAIntoA loads the contents of the accumulator into the accumulator.
@@ -132,7 +132,7 @@ func (cpu *CPU) LoadAIntoHL() {
 
 	cpu.memStoreByte(hl, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadRIntoHL loads the contents of the provided register into the memory
@@ -145,7 +145,7 @@ func (cpu *CPU) LoadRIntoHL(r Register) {
 
 	cpu.memStoreByte(hl, *a)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadNIntoHL loads the contents of the memory specified by the 8-bit immediate
@@ -158,7 +158,7 @@ func (cpu *CPU) LoadNIntoHL() {
 	hl, _ := cpu.r.Paired(RegisterHL)
 	cpu.memStoreByte(hl, n)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 func (cpu *CPU) offsetC() uint16 {
@@ -187,7 +187,7 @@ func (cpu *CPU) LoadAIntoOffsetC() {
 	address := cpu.offsetC()
 	cpu.memStoreByte(address, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 func (cpu *CPU) offsetImmediate() uint16 {
@@ -217,7 +217,7 @@ func (cpu *CPU) LoadAIntoOffsetImmediate() {
 	address := cpu.offsetImmediate()
 	cpu.memStoreByte(address, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadNNIntoA loads the contents of the memory address specified by the 16-bit
@@ -229,7 +229,7 @@ func (cpu *CPU) LoadNNIntoA() {
 	acc := cpu.r.Accumulator()
 	cpu.memStoreByte(address, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadAIntoNN loads the contents of register A into the memory address
@@ -268,7 +268,7 @@ func (cpu *CPU) LoadAIntoBC() {
 
 	cpu.memStoreByte(bc, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadAIntoDE loads the contents of the accumulator into the memory address
@@ -281,7 +281,7 @@ func (cpu *CPU) LoadAIntoDE() {
 
 	cpu.memStoreByte(de, *acc)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadAIntoHLIncrementHL loads the contents of the accumulator into the memory
@@ -305,7 +305,7 @@ func (cpu *CPU) LoadAIntoHLDecrementHL() {
 func (cpu *CPU) load16(val uint16, rr Register) {
 	cpu.r.SetPaired(rr, val)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadNNIntoRR loads the 16-bit immediate operand into the provided paired
@@ -326,7 +326,7 @@ func (cpu *CPU) LoadHLIntoSP() {
 	sp := cpu.r.StackPointer()
 	*sp = hl
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // Pushes the provided word onto the stack, then decrements the stack pointer
@@ -345,7 +345,7 @@ func (cpu *CPU) PushAFOntoStack() {
 
 	cpu.pushWordOntoStack(cpu.r.AF())
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // PushRROntoStack pushes the contents of the provided paired register onto the stack.
@@ -355,7 +355,7 @@ func (cpu *CPU) PushRROntoStack(rr Register) {
 	word, _ := cpu.r.Paired(rr)
 	cpu.pushWordOntoStack(word)
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // Pops a word from the stack, then increments the stack pointer by 2.
@@ -376,7 +376,7 @@ func (cpu *CPU) PopStackIntoAF() {
 
 	cpu.r.SetAF(cpu.popStack())
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // PopStackIntoRR pops a word from the stack and loads it into the provided
@@ -386,7 +386,7 @@ func (cpu *CPU) PopStackIntoRR(to Register) {
 
 	cpu.r.SetPaired(to, cpu.popStack())
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // LoadOffsetSPIntoHL loads the result of the addition of the stack pointer and
@@ -410,7 +410,7 @@ func (cpu *CPU) LoadSPIntoNN() {
 	sp := cpu.r.StackPointer()
 	cpu.memStoreWord(address, *sp)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 /**
@@ -439,7 +439,7 @@ func (cpu *CPU) add8(x, y uint8, useCarry bool) (result uint8) {
 	cpu.r.PutFlag(FlagH, halfCarryOut)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return result
 }
@@ -623,7 +623,7 @@ func (cpu *CPU) and8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return result
 }
@@ -674,7 +674,7 @@ func (cpu *CPU) xor8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return result
 }
@@ -725,7 +725,7 @@ func (cpu *CPU) or8(x, y uint8) (result uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, result == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return result
 }
@@ -825,7 +825,7 @@ func (cpu *CPU) increment8Helper(x *uint8) {
 	*x = cpu.increment8(*x, 1)
 	cpu.r.ResetFlag(FlagN)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // IncrementA increments the accumulator register by 1. Flags are updated
@@ -863,7 +863,7 @@ func (cpu *CPU) decrement8Helper(x *uint8) {
 	*x = cpu.increment8(*x, by)
 	cpu.r.SetFlag(FlagN)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // DecrementA decrements the accumulator register by 1. Flags are updated
@@ -932,7 +932,7 @@ func (cpu *CPU) DecimalAdjustA() {
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.PutFlag(FlagZ, *acc == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // ComplementA sets the accumulator to the one's complement of itself. Flags are
@@ -946,7 +946,7 @@ func (cpu *CPU) ComplementA() {
 	cpu.r.SetFlag(FlagH)
 	cpu.r.SetFlag(FlagN)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // ComplementCarryFlag toggles the carry flag. Flags are updated accordingly.
@@ -958,7 +958,7 @@ func (cpu *CPU) ComplementCarryFlag() {
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.ResetFlag(FlagN)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // SetCarryFlag sets the carry flag. Flags are updated accordingly.
@@ -970,7 +970,7 @@ func (cpu *CPU) SetCarryFlag() {
 	cpu.r.ResetFlag(FlagH)
 	cpu.r.ResetFlag(FlagN)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 /**
@@ -994,7 +994,7 @@ func (cpu *CPU) add16(x, y uint16) (result uint16) {
 	cpu.r.PutFlag(FlagH, halfCarryOut)
 	cpu.r.ResetFlag(FlagN)
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 
 	return result
 }
@@ -1028,7 +1028,7 @@ func (cpu *CPU) IncrementRR(rr Register) {
 
 	cpu.r.IncrementPaired(rr)
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // IncrementSP increments the stack pointer register by 1.
@@ -1038,7 +1038,7 @@ func (cpu *CPU) IncrementSP() {
 	sp := cpu.r.StackPointer()
 	*sp++
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // DecrementRR decrements the provided register by 1.
@@ -1047,7 +1047,7 @@ func (cpu *CPU) DecrementRR(rr Register) {
 
 	cpu.r.DecrementPaired(rr)
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // DecrementSP decrements the stack pointer register by 1.
@@ -1057,7 +1057,7 @@ func (cpu *CPU) DecrementSP() {
 	sp := cpu.r.StackPointer()
 	*sp--
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // Adds uint8 to uint16 with uint8 being treated as a signed number in the range
@@ -1087,7 +1087,7 @@ func (cpu *CPU) AddOffsetImmediateToSP() {
 	offsetSP := cpu.add16S8(*sp, cpu.memImmediateByte())
 	*sp = offsetSP
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 /**
@@ -1105,7 +1105,7 @@ func (cpu *CPU) JumpHL() {
 	hl, _ := cpu.r.Paired(RegisterHL)
 	*pc = hl
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // JumpOffset loads the result of the addition of the program counter and the
@@ -1127,7 +1127,7 @@ func (cpu *CPU) JumpOffsetConditionally(flag Flag, isSet bool) {
 		cpu.JumpOffset()
 	} else {
 		cpu.r.IncrementProgramCounter(1)
-		cpu.c.AddT(2)
+		cpu.c.AddM(2)
 	}
 }
 
@@ -1136,7 +1136,7 @@ func (cpu *CPU) JumpNN() {
 	pc := cpu.r.ProgramCounter()
 	*pc = cpu.memImmediateWord()
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // JumpNNConditionally loads the 16-bit immediate operand into the program
@@ -1146,7 +1146,7 @@ func (cpu *CPU) JumpNNConditionally(flag Flag, isSet bool) {
 		cpu.JumpNN()
 	} else {
 		cpu.r.IncrementProgramCounter(1)
-		cpu.c.AddT(3)
+		cpu.c.AddM(3)
 	}
 }
 
@@ -1166,7 +1166,7 @@ func (cpu *CPU) CallNNConditionally(flag Flag, isSet bool) {
 		cpu.CallNN()
 	} else {
 		cpu.r.IncrementProgramCounter(1)
-		cpu.c.AddT(3)
+		cpu.c.AddM(3)
 	}
 }
 
@@ -1175,7 +1175,7 @@ func (cpu *CPU) Return() {
 	pc := cpu.r.ProgramCounter()
 	*pc = cpu.popStack()
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 // ReturnConditionally loads a word popped from the stack into the program
@@ -1183,10 +1183,10 @@ func (cpu *CPU) Return() {
 func (cpu *CPU) ReturnConditionally(flag Flag, isSet bool) {
 	if cpu.shouldJump(flag, isSet) {
 		cpu.Return()
-		cpu.c.AddT(1)
+		cpu.c.AddM(1)
 	} else {
 		cpu.r.IncrementProgramCounter(1)
-		cpu.c.AddT(2)
+		cpu.c.AddM(2)
 	}
 }
 
@@ -1203,7 +1203,7 @@ func (cpu *CPU) Restart(t uint8) {
 	cpu.pushWordOntoStack(*pc)
 	*pc = uint16(t)
 
-	cpu.c.AddT(2)
+	cpu.c.AddM(2)
 }
 
 /**
@@ -1241,7 +1241,7 @@ func (cpu *CPU) rotate8SwapHelper(x *uint8, right bool) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, *x == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
@@ -1253,7 +1253,7 @@ func (cpu *CPU) rotate8BothHelper(x *uint8, right bool) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, *x == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // RLCA rotates the contents of the accumulator to the left. The MSB becomes the
@@ -1441,7 +1441,7 @@ func (cpu *CPU) shift8Helper(x *uint8, right bool) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, *x == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // SLAA shifts the contents of the accumulator to the left. The MSB becomes the
@@ -1553,7 +1553,7 @@ func (cpu *CPU) swap8Helper(x *uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, *x == 0)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // SwapA swaps the accumulator nibbles. Flags are updated accordingly.
@@ -1590,7 +1590,7 @@ func (cpu *CPU) bit8(x, b uint8) {
 	cpu.r.ResetFlag(FlagN)
 	cpu.r.PutFlag(FlagZ, !isSet)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // BitA sets the Z flag to the complement of the contents of the provided bit in
@@ -1625,7 +1625,7 @@ func (cpu *CPU) BitHL(b uint8) {
 func (cpu *CPU) reset8(x *uint8, b uint8) {
 	*x &^= (1 << b)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // ResetA resets the provided bit in the accumulator.
@@ -1658,7 +1658,7 @@ func (cpu *CPU) ResetHL(b uint8) {
 func (cpu *CPU) set8(x *uint8, b uint8) {
 	*x |= (1 << b)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 // SetA sets the provided bit in the accumulator.
@@ -1707,7 +1707,7 @@ func (cpu *CPU) decrementRegister(r Register) {
 func (cpu *CPU) memByte(addr uint16) uint8 {
 	val := cpu.m.Load(addr)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return val
 }
@@ -1717,7 +1717,7 @@ func (cpu *CPU) memImmediateByte() uint8 {
 	val := cpu.m.Load(*pc)
 
 	*pc++
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 
 	return val
 }
@@ -1725,7 +1725,7 @@ func (cpu *CPU) memImmediateByte() uint8 {
 func (cpu *CPU) memStoreByte(addr uint16, b uint8) {
 	cpu.m.Store(addr, b)
 
-	cpu.c.AddT(1)
+	cpu.c.AddM(1)
 }
 
 func (cpu *CPU) memWord(addr uint16) uint16 {

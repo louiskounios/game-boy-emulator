@@ -6,10 +6,10 @@ import (
 
 type (
 	instruction struct {
-		opcode      uint8
-		clockCycles uint8
-		mnemonic    string
-		execute     func(cpu *CPU)
+		opcode        uint8
+		machineCycles uint8
+		mnemonic      string
+		execute       func(cpu *CPU)
 	}
 
 	instructionSet [256]*instruction
