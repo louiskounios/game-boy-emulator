@@ -6,7 +6,7 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	m := Memory{
+	m := memory{
 		0:     0,
 		500:   128,
 		65535: 255,
@@ -31,7 +31,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
-	m := Memory{}
+	m := memory{}
 
 	var testCases = []struct {
 		address uint16

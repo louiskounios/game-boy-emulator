@@ -1,15 +1,17 @@
 package cpu
 
 import (
+	"fmt"
+
 	"github.com/loizoskounios/game-boy-emulator/mmu"
 )
 
 // CPU is the CPU.
 type CPU struct {
-	c *Clock
-	i *instruction
-	r *Registers
-	m *mmu.Memory
+	c   *Clock
+	i   *instruction
+	r   *Registers
+	mmu *mmu.MemoryManagementUnit
 }
 
 // New returns a new CPU struct.
@@ -17,18 +19,49 @@ func New() *CPU {
 	c := NewClock(0)
 	i := &instruction{}
 	r := NewRegisters()
-	m := &mmu.Memory{}
+	mmu := mmu.New()
 
 	return &CPU{
-		c: c,
-		i: i,
-		r: r,
-		m: m,
+		c:   c,
+		i:   i,
+		r:   r,
+		mmu: mmu,
+	}
+}
+
+// Rst resets the CPU to the start of execution.
+func (cpu *CPU) Rst() {
+	cpu = New()
+}
+
+// Dispatch loop.
+func (cpu *CPU) Dispatch() {
+	opcode := uint8(0)
+	currInstructionSet := &instructions
+	pc := cpu.r.ProgramCounter()
+
+	for i := 0; i < 256; i++ {
+		if opcode == 0xCB {
+			currInstructionSet = &instructionsCB
+		} else {
+			currInstructionSet = &instructions
+		}
+
+		opcode = cpu.memByte(*pc)
+		cpu.i = currInstructionSet[opcode]
+		fmt.Println(cpu.i)
+		cpu.i.execute(cpu)
 	}
 }
 
 // Nop does nothing.
 func (cpu *CPU) Nop() {
+	cpu.r.IncrementProgramCounter(1)
+	cpu.c.AddM(1)
+}
+
+// CB switches to the CB instruction set.
+func (cpu *CPU) CB() {
 	cpu.r.IncrementProgramCounter(1)
 	cpu.c.AddM(1)
 }
@@ -1705,7 +1738,7 @@ func (cpu *CPU) decrementRegister(r Register) {
 }
 
 func (cpu *CPU) memByte(addr uint16) uint8 {
-	val := cpu.m.Load(addr)
+	val := cpu.mmu.Load(addr)
 
 	cpu.c.AddM(1)
 
@@ -1714,7 +1747,7 @@ func (cpu *CPU) memByte(addr uint16) uint8 {
 
 func (cpu *CPU) memImmediateByte() uint8 {
 	pc := cpu.r.ProgramCounter()
-	val := cpu.m.Load(*pc)
+	val := cpu.mmu.Load(*pc)
 
 	*pc++
 	cpu.c.AddM(1)
@@ -1723,7 +1756,7 @@ func (cpu *CPU) memImmediateByte() uint8 {
 }
 
 func (cpu *CPU) memStoreByte(addr uint16, b uint8) {
-	cpu.m.Store(addr, b)
+	cpu.mmu.Store(addr, b)
 
 	cpu.c.AddM(1)
 }

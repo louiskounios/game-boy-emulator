@@ -27,7 +27,7 @@ var instructions = instructionSet{
 	0x00: &instruction{0x00, 1, "NOP", func(cpu *CPU) { cpu.Nop() }},
 	0x10: &instruction{0x10, 1, "STOP 0", func(cpu *CPU) { cpu.Nop() }},
 	0x76: &instruction{0x76, 1, "HALT", func(cpu *CPU) { cpu.Nop() }},
-	0xCB: &instruction{0xCB, 1, "PREFIX CB", func(cpu *CPU) { cpu.Nop() }},
+	0xCB: &instruction{0xCB, 1, "PREFIX CB", func(cpu *CPU) { cpu.CB() }},
 	0xF3: &instruction{0xF3, 1, "DI", func(cpu *CPU) { cpu.Nop() }},
 	0xFB: &instruction{0xFB, 1, "EI", func(cpu *CPU) { cpu.Nop() }},
 	0xD3: &instruction{0xD3, 1, "BLANK", func(cpu *CPU) { cpu.Nop() }},
